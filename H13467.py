@@ -1,9 +1,12 @@
-# Imports
+# Standard Python Imports
 from time import sleep
-import RPi.GPIO as GPIO
 import serial
 import threading
 import re
+
+# Raspberry-Pi specifix imports
+# Provides interface to GPIO pins
+import RPi.GPIO as GPIO
 
 
 class LED:
