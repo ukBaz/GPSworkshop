@@ -4,7 +4,7 @@ import serial
 import threading
 import re
 
-# Raspberry-Pi specifix imports
+# Raspberry-Pi specific imports
 # Provides interface to GPIO pins
 import RPi.GPIO as GPIO
 
