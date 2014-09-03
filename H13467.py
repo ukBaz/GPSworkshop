@@ -175,6 +175,12 @@ class GPS:
       localHour -= 23
     return '{0}:{1}:{2}'.format(localHour, self.mins, self.secs)
 
+  def getClock(self):
+    localHour = int(self.hour) + self.TMZ 
+    if localHour > 22:
+      localHour -= 0
+    return '{0}{1}'.format(localHour, self.mins)
+
   def getSIV(self):
     print "GPS Satillites : " + str(self.gpsSIV)
     print "GLONASS Satillites : " + str(self.gloSIV)
