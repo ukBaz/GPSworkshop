@@ -31,12 +31,15 @@ if __name__ == '__main__':
       else:
         LD2.off()
       print "GPS has fix: %s" % GPS1.hasFix()
+      if  not GPS1.hasFix():
+        DISP.setMsg('no SignAL yEt')
+      else:
+        DISP.setClock(GPS1.getClock())
       print "GPS module is awake: %s" % GPS1.isAwake()
       print "Satalites in view is: %s" % GPS1.getSIV()
       print "Time is : " + GPS1.getLocalTime()
       print "Latitude is: {0} {1}".format(GPS1.latDeg, GPS1.latMin)
       print "Longitude is: {0} {1}".format(GPS1.longDeg, GPS1.longMin)
-      DISP.toDisp = GPS1.getClock()
       sleep(1)
       print chr(27) + "[2J"
 
