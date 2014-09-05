@@ -3,12 +3,15 @@ from time import sleep
 import serial
 import threading
 import re
-import H13467
-import IPD
 
 # Raspberry-Pi specific imports
 # Provides interface to GPIO pins
 import RPi.GPIO as GPIO
+
+# Library for CSR GPS board
+import H13467
+# Library for 4tronix Display Dongle
+import IPD
 
 if __name__ == '__main__':
   GPIO.setmode(GPIO.BCM)
