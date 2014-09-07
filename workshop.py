@@ -24,7 +24,7 @@ if __name__ == '__main__':
   try:
     while 1:
       LD1.toggle()
-      BTN.isPressed()
+      # BTN.isPressed()
       print "Button has been pressed %s times" % BTN.getCount()
       if BTN.isOdd():
         LD2.on()

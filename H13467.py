@@ -3,6 +3,7 @@ from time import sleep
 import serial
 import threading
 import re
+import datetime
 
 # Raspberry-Pi specific imports
 # Provides interface to GPIO pins
@@ -43,8 +44,25 @@ class BUT:
 
   def __init__(self, pin):
     self.pin = pin
+    self.BTNtime = 0
     GPIO.setup(self.pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.add_event_detect(self.pin, GPIO.BOTH, callback=self.BTNcallback, bouncetime=300)
     self.count = 0
+
+  def BTNcallback(self, channel):
+    if GPIO.input(channel):     # if port 23 == 1
+      print "Rising edge detected on {0}".format(channel)
+      diff = datetime.datetime.now() - self.BTNtime
+      print 'Button held for: {0}'.format(diff.seconds)
+    else:                  # if port 23 != 1
+      print "Falling edge detected on {0}".format(channel)
+      self.BTNtime = datetime.datetime.now()
+      self.count += 1
+      tCount = 0
+      while not GPIO.input(channel):
+        sleep(1)
+        tCount += 1
+        print tCount
 
   def isPressed(self):
     if GPIO.input(self.pin) == False:
