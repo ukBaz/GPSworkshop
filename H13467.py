@@ -9,6 +9,9 @@ import datetime
 # Provides interface to GPIO pins
 import RPi.GPIO as GPIO
 
+# Library for pypi.python.org
+import utm
+
 
 class LED:
     'Class for controling LEDs on H13467 board'
@@ -93,15 +96,20 @@ class GPS:
         self.gloSIV = 0 # GLONASS satellites in view
         self.mode1 = 'M' # Manual or Automatic
         self.mode2 = 1 # 1 = no Fix; 2 = 2D; 3=3D
+        self.echoGPS = False # Turn on echoing GPS data to screen
         self.hour = 00 # Hours
         self.mins = 00 # Minutes
         self.secs = 00 # seconds
         self.TMZ    = 1 # offset from UTC
-        self.latDeg = 0 # Lattitude Degrees
-        self.latMin = 0.0 # latitude Decminal Minutes
-        self.longDeg = 0 # Longitude Degrees
-        self.longMin = 0.0 # Longitude Decimal Minutes
-
+        self.latDD = 0 # Lattitude Decimal Degrees
+        self.lonDD = 0 # Longitude Decimal Degrees
+        self.utmEast = 0 # UTM WGS84 Easting number
+        self.utmNorth = 0 # UTMWGS84 Northing number
+        self.utmZone = 0 # UTM WGS84 Zone
+        self.utmBand = 'U' # UTM WGS84 Latitude Band
+        self.accuracy = 1.5 # Number from originGPS datasheet
+        self.HDOP = 50 # Horizontal Dilution of Precision
+        self.precision = 50 # Calculate precision of measurement ( HDOP * Accuracy )
         # setup pins
         self.awakePin = awakePin
         self.onOffPin = onOffPin
@@ -138,7 +146,8 @@ class GPS:
         try:
             while self.isAwake():
                 gpsData = self.port.readline().rstrip("\n\lf")
-                # self.echoData(gpsData)
+                if self.echoGPS:
+                    self.echoData(gpsData)
                 self.processData(gpsData)
 
         except:
@@ -162,11 +171,25 @@ class GPS:
         if 'GNRMC' in data[0]:
             self.processGNRMC(data)
 
+    def ddm2dd(self, lat, lon):
+        'Convert Degree Decimal Minutes to Decimal Degrees'
+        latDeg = lat[0:2]
+        latMin = lat[2:]
+        # print '{0}:{1}'.format(latDeg, latMin)
+        lonDeg = lon[0:3]
+        lonMin = lon[3:]
+        # print '{0}:{1}'.format(lonDeg, lonMin)
+        latDD = '{0:.06f}'.format(float(latMin)/60 + int(latDeg))
+        # print latDD
+        lonDD = '{0:.06f}'.format(float(lonMin)/60 + int(lonDeg))
+        # print lonDD
+        return (latDD, lonDD)
+
     def processGNRMC(self, data):
-        self.latDeg = data[3][0:2]
-        self.latMin = data[3][2:]
-        self.longDeg = data[5][0:2]
-        self.longMin = data[5][2:]
+        if (data[3] != '' and data[5] != ''):
+            self.latDD, self.lonDD = self.ddm2dd(data[3], data[5])
+            # print 'utm.from_latlon({0}, {1})'.format(self.latDD, self.lonDD)
+            (self.utmEast, self.utmNorth, self.utmZone, self.utmBand) = utm.from_latlon(float(self.latDD), float(self.lonDD))
 
     def processGPGSV(self, data):
         self.gpsSIV = data[3]
@@ -179,6 +202,9 @@ class GPS:
     def processGNGSA(self, data):
         self.mode1 = data[1]
         self.mode2 = data[2]
+        self.HDOP = data[16]
+        if data[16] != '':
+            self.precision = float(self.HDOP) * self.accuracy
 
     def processGPGGA(self, data):
         self.setTime(data[1])
@@ -219,33 +245,35 @@ class GPS:
             returnVal = True
         return returnVal
 
-
 if __name__ == '__main__':
     GPIO.setmode(GPIO.BCM)
     LD1 = LED(25)
-    BTN  = BUT(23)
+    BTN = BUT(23)
     LD2 = LED(24)
     GPS1 = GPS(18, 22)
+    GPS1.echoGPS = True
     GPS1.dataStart()
 
     print 'Use CTRL-C to end loop'
     try:
         while 1:
             LD1.toggle()
-            BTN.isPressed()
-            print "Button has been pressed %s times" % BTN.getCount()
             if BTN.isOdd():
                 LD2.on()
             else:
                 LD2.off()
-            print "GPS has fix: %s" % GPS1.hasFix()
+            print "Button has been pressed %s times" % BTN.getCount()
             print "GPS module is awake: %s" % GPS1.isAwake()
+            print "GPS has fix? %s" % GPS1.hasFix()
             print "Satalites in view is: %s" % GPS1.getSIV()
             print "Time is : " + GPS1.getLocalTime()
-            print "Latitude is: {0} {1}".format(GPS1.latDeg, GPS1.latMin)
-            print "Longitude is: {0} {1}".format(GPS1.longDeg, GPS1.longMin)
-            sleep(1)
-            print chr(27) + "[2J"
+            print "Latitude is: {0} -+- Longitude is: {1}".format(GPS1.latDD, GPS1.lonDD)
+            print "UTM is: {0}, {1}, {2}, {3}".format(GPS1.utmEast,
+                                                      GPS1.utmNorth,
+                                                      GPS1.utmZone,
+                                                      GPS1.utmBand)
+            sleep(5)
+            # print chr(27) + "[2J"
 
     except KeyboardInterrupt:
         print '\nInterrupt caught'

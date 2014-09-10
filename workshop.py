@@ -1,14 +1,18 @@
 # Standard Python Imports
 from time import sleep
-import serial
-import threading
-import re
+from math import sqrt, pow
+# import serial
+# import threading
+# import re
 import os
 import datetime
 
 # Raspberry-Pi specific imports
 # Provides interface to GPIO pins
 import RPi.GPIO as GPIO
+
+# Package downloaded from pypi
+import utm
 
 # Library for CSR GPS board
 import H13467
@@ -24,36 +28,36 @@ if __name__ == '__main__':
     GPS1.dataStart()
     DISP = IPD.IPD()
     DISP.dispStart()
+    N1 = 0
+    N2 = 0
+    E1 = 0
+    E2 = 0
+    dist = 0
+    firstTime = True
 
     print 'Use CTRL-C to end loop'
     try:
         while 1:
-            LD1.toggle()
-            # BTN.isPressed()
-            print "Button has been pressed %s times" % BTN.getCount()
             if BTN.isOdd():
-                LD2.on()
-            else:
+                LD1.on()
                 LD2.off()
-            print "GPS has fix? %s" % GPS1.hasFix()
-            if  not GPS1.hasFix():
-                DISP.setMsg('no SignAL yEt')
-            elif BTN.mode == 0:
-                DISP.setClock(GPS1.getClock())
-            elif BTN.mode == 1:
-                DISP.setMsg('tAPE')
-            elif BTN.mode == 2:
-                DISP.setMsg('oFF-')
-                if (datetime.datetime.now() - BTN.BTNtime).seconds > 5:
-                    BTN.mode = 0
-                elif (BTN.modeTime - BTN.BTNtime).seconds < 0:
-                    print '\n\n\n\n *******  Going Down **********\n\n\n\n'
-                    os.system("shutdown -Ph now")
-            print "GPS module is awake: %s" % GPS1.isAwake()
-            print "Satalites in view is: %s" % GPS1.getSIV()
-            print "Time is : " + GPS1.getLocalTime()
-            print "Latitude is: {0} {1}".format(GPS1.latDeg, GPS1.latMin)
-            print "Longitude is: {0} {1}".format(GPS1.longDeg, GPS1.longMin)
+                N1 = GPS1.utmEast
+                E1 = GPS1.utmNorth
+                DISP.setMsg('Pt2-')
+                print 'Pt2-'
+                firstTime = False
+            else:
+                if firstTime:
+                    DISP.setMsg('Pt1-')
+                    print 'Pt1-'
+                else:
+                    LD2.on()
+                    LD1.on()
+                    N2 = GPS1.utmEast
+                    E2 = GPS1.utmNorth
+                    dist = sqrt(pow(N1 - N2, 2) + pow(E1 - E2, 2))
+                    DISP.setMsg('{0} P{1}'.format(dist, GPS1.precision))
+                    print '{0} P{1}'.format(dist, GPS1.precision)
             sleep(1.5)
             # print chr(27) + "[2J"
 
