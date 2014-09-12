@@ -40,7 +40,8 @@ class IPD:
                                      "S" : 0b01101101,
                                      "g" : 0b01101111,
                                      "L" : 0b00111000,
-                                     "P" : 0b01110011}
+                                     "P" : 0b01110011,
+                                     "?" : 0b01010011}
         self.location = {"1" : 0b00000001,
                                          "2" : 0b00000010,
                                          "3" : 0b00000100,
@@ -102,6 +103,9 @@ class IPD:
         while 1:
             if len(self.toDisp) == 4:
                 self.send4Digits(self.toDisp)
+            elif len(self.toDisp) < 4:
+                padString = ' ' * (4 - len(self.toDisp)) + self.toDisp
+                self.send4Digits(padString)
             else:
                 padString = ' ' * 4 + self.toDisp + ' ' * 4
                 for i in range(0, len(padString)-3):

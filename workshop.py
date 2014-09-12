@@ -1,6 +1,6 @@
 # Standard Python Imports
 from time import sleep
-from math import sqrt, pow
+from math import hypot
 # import serial
 # import threading
 # import re
@@ -33,31 +33,29 @@ if __name__ == '__main__':
     E1 = 0
     E2 = 0
     dist = 0
-    firstTime = True
+    needRef = True
 
     print 'Use CTRL-C to end loop'
     try:
         while 1:
             if BTN.isOdd():
-                LD1.on()
-                LD2.off()
-                N1 = GPS1.utmEast
-                E1 = GPS1.utmNorth
-                DISP.setMsg('Pt2-')
-                print 'Pt2-'
-                firstTime = False
+                if needRef:
+                    N1 = GPS1.utmEast
+                    E1 = GPS1.utmNorth
+                    needRef = False
+                N2 = GPS1.utmEast
+                E2 = GPS1.utmNorth
+                dist = hypot(N1 - N2, E1 - E2)
+                DISP.setMsg('{0}'.format(int(dist)))
+                print '{0}'.format(int(dist))
             else:
-                if firstTime:
-                    DISP.setMsg('Pt1-')
-                    print 'Pt1-'
-                else:
-                    LD2.on()
-                    LD1.on()
-                    N2 = GPS1.utmEast
-                    E2 = GPS1.utmNorth
-                    dist = sqrt(pow(N1 - N2, 2) + pow(E1 - E2, 2))
-                    DISP.setMsg('{0} P{1}'.format(dist, GPS1.precision))
-                    print '{0} P{1}'.format(dist, GPS1.precision)
+                DISP.setMsg('{0}P{1}'.format(int(dist), int(GPS1.precision)))
+                print 'n1 = {0}'.format(N1)
+                print 'n2 = {0}'.format(N2)
+                print 'e1 = {0}'.format(E1)
+                print 'e2 = {0}'.format(N2)
+                print '{0} P{1}'.format(int(dist), int(GPS1.precision))
+                needRef = True
             sleep(1.5)
             # print chr(27) + "[2J"
 
