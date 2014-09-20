@@ -25,9 +25,7 @@ if __name__ == '__main__':
     BTN  = H13467.BUT(23)
     LD2 = H13467.LED(24)
     GPS1 = H13467.GPS(18, 22)
-    GPS1.dataStart()
     DISP = IPD.IPD()
-    DISP.dispStart()
     N1 = 0
     N2 = 0
     E1 = 0

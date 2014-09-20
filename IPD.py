@@ -59,6 +59,7 @@ class IPD:
         self.bus.write_byte_data(self.addr, 0x00, 0x00) # Set all of bank 0 to outputs 
         self.bus.write_byte_data(self.addr, 0x01, 0x00) # Set all of bank 1 to outputs 
         self.bus.write_byte_data(self.addr, 0x13, 0xff) # Set all of bank 1 to High (Off) 
+        self.dispStart()
 
     def sendDigit(self, digit, pos):
         # print "**** Digit: {0} -+- Location: {1:8b}".format(digit, self.location[pos])
