@@ -1,6 +1,6 @@
-GPSworkshop
-===========
+***GPSworkshop
 
+[x] check box
 STEM workshop using H13467 GPS board from CSR
 
 This is python code for interface to run on Raspberry Pi.
@@ -48,3 +48,4 @@ Enable UART GPIO pins
   # Spawn a getty on Raspberry Pi serial line
   # T0:23:respawn:/sbin/getty -L ttyAMA0 115200 vt100
   
+wget https://github.com/ukBaz/GPSworkshop/archive/master.zip
