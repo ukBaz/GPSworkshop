@@ -59,3 +59,10 @@ Install from github the workshop code:
 ```
 wget https://github.com/ukBaz/GPSworkshop/archive/master.zip
 ```
+
+# Display RPi remotely to another Linux/X11 machine
+On remote machine from command line
+```
+ssh -X pi@xxx.xxx.x.xxx
+lxsession
+```
