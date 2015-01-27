@@ -33,22 +33,22 @@ if __name__ == '__main__':
     try:
         while 1:
             # Test for button press
-            if BTN.isOdd():
+            if BTN.is_odd():
                 # Use LEDs to show change
                 LD1.on()
                 LD2.off()
                 if needRef:
                     # Get reference coordinates
-                    E1 = GPS1.utmEast
-                    N1 = GPS1.utmNorth
+                    E1 = GPS1.utm_east
+                    N1 = GPS1.utm_north
                     needRef = False
                 # Get current position
-                E2 = GPS1.utmEast
-                N2 = GPS1.utmNorth
+                E2 = GPS1.utm_east
+                N2 = GPS1.utm_north
                 # Use Pythagoras Theorem to find distance
                 dist = hypot(N1 - N2, E1 - E2)
                 # Show on display
-                DISP.setMsg('{0}'.format(int(dist)))
+                DISP.set_msg('{0}'.format(int(dist)))
                 # Print debug statements
                 print '{0}'.format(int(dist))
             else:
@@ -56,7 +56,7 @@ if __name__ == '__main__':
                 LD1.off()
                 LD2.on()
                 # Show last distance calculation and precision of GPS
-                DISP.setMsg('{0}P{1}'.format(int(dist), int(GPS1.precision)))
+                DISP.set_msg('{0}P{1}'.format(int(dist), int(GPS1.precision)))
                 # print debug statements
                 print 'n1 = {0}'.format(N1)
                 print 'n2 = {0}'.format(N2)
@@ -74,7 +74,7 @@ if __name__ == '__main__':
 
     finally:
         print 'Tidy up before exit'
-        DISP.clearDisp()
-        GPS1.dataStop()
-        GPS1.pulseOnOff()
+        DISP.clear_display()
+        GPS1.data_stop()
+        GPS1.pulse_on_off()
         GPIO.cleanup()

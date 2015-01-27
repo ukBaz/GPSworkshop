@@ -1,6 +1,5 @@
 # Standard Python Imports
 from time import sleep
-import serial
 import threading
 import re
 import datetime
@@ -8,14 +7,15 @@ import datetime
 # Raspberry-Pi specific imports
 # Provides interface to GPIO pins
 import RPi.GPIO as GPIO
+import serial
 
 # Library for pypi.python.org
 import utm
 
 
 class LED:
-    """Class for controling LEDs on CSR H13467 board"""
-    
+    """Class for controlling LEDs on CSR H13467 board"""
+
     def __init__(self, pin):
         self.pin = pin
         self.ledState = 0
@@ -50,42 +50,42 @@ class BUT:
         self.BTNtime = 0
         self.modeTime = 0
         GPIO.setup(self.pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.add_event_detect(self.pin, GPIO.BOTH, callback=self.BTNcallback, bouncetime=300)
+        GPIO.add_event_detect(self.pin, GPIO.BOTH, callback=self._button_callback, bouncetime=300)
         self.count = 0
         self.mode = 0
 
-    def BTNcallback(self, channel):
+    def _button_callback(self, channel):
         """Callback for button"""
-        if GPIO.input(channel):         # if port 23 == 1
+        if GPIO.input(channel):  # if port 23 == 1
             print "Rising edge detected on {0}".format(channel)
             diff = datetime.datetime.now() - self.BTNtime
             print 'Button held for: {0}'.format(diff.seconds)
-        else:                                    # if port 23 != 1
+        else:  # if port 23 != 1
             print "Falling edge detected on {0}".format(channel)
             self.BTNtime = datetime.datetime.now()
             self.count += 1
-            tCount = 0
+            t_count = 0
             while not GPIO.input(channel):
                 sleep(1)
-                tCount += 1
-                print tCount
-                if tCount > 10:
+                t_count += 1
+                print t_count
+                if t_count > 10:
                     self.mode = 2
                     self.modeTime = datetime.datetime.now()
-                elif tCount > 2:
+                elif t_count > 2:
                     self.mode = 1
 
-    def isPressed(self):
+    def is_pressed(self):
         """Increase button count"""
-        if GPIO.input(self.pin) == False:
+        if not GPIO.input(self.pin):
             print 'Button Pressed!'
-            self.count+=1
+            self.count += 1
 
-    def getCount(self):
-        """Method to get button count"""
+    def get_count(self):
+        """Method to get count of button presses"""
         return self.count
 
-    def isOdd(self):
+    def is_odd(self):
         """Return false if count is even or True if odd"""
         return self.count % 2 == 1
 
@@ -93,139 +93,155 @@ class BUT:
 class GPS:
     """Class for getting information for the CSR GPS module on H13467 board"""
 
-    def __init__(self, awakePin, onOffPin):
+    def __init__(self, awake_pin, on_off_pin):
         self.port = serial.Serial("/dev/ttyAMA0", baudrate=4800, timeout=3.0)
         # Store GPS information
-        self.gpsSIV = 0 # GPS satellites in view
-        self.gloSIV = 0 # GLONASS satellites in view
-        self.mode1 = 'M' # Manual or Automatic
-        self.mode2 = 1 # 1 = no Fix; 2 = 2D; 3=3D
-        self.echoGPS = False # Turn on echoing GPS data to screen
-        self.hour = 00 # Hours
-        self.mins = 00 # Minutes
-        self.secs = 00 # seconds
-        self.TMZ    = 1 # offset from UTC
-        self.latDD = 0 # Lattitude Decimal Degrees
-        self.lonDD = 0 # Longitude Decimal Degrees
-        self.utmEast = 0 # UTM WGS84 Easting number
-        self.utmNorth = 0 # UTMWGS84 Northing number
-        self.utmZone = 0 # UTM WGS84 Zone
-        self.utmBand = 'U' # UTM WGS84 Latitude Band
-        self.accuracy = 1.5 # Number from originGPS datasheet
-        self.HDOP = 50 # Horizontal Dilution of Precision
-        self.precision = 50 # Calculate precision of measurement ( HDOP * Accuracy )
+        self.gps_siv = 0  # GPS satellites in view
+        self.glo_siv = 0  # GLONASS satellites in view
+        self.mode1 = 'M'  # Manual or Automatic
+        self.mode2 = 1  # 1 = no Fix; 2 = 2D; 3=3D
+        self.echo_gps = False  # Turn on echoing GPS data to screen
+        self.hour = 00  # Hours
+        self.mins = 00  # Minutes
+        self.secs = 00  # seconds
+        self.tmz_offset = 1  # offset from UTC
+        self.lat_dec_deg = 0  # Lattitude Decimal Degrees
+        self.lon_dec_deg = 0  # Longitude Decimal Degrees
+        self.utm_east = 0  # UTM WGS84 Easting number
+        self.utm_north = 0  # UTMWGS84 Northing number
+        self.utm_zone = 0  # UTM WGS84 Zone
+        self.utm_band = 'U'  # UTM WGS84 Latitude Band
+        self.accuracy = 1.5  # Number from originGPS datasheet
+        self.hdop = 50  # Horizontal Dilution of Precision
+        self.precision = 50  # Calculate precision of measurement ( hdop * Accuracy )
         # setup pins
-        self.awakePin = awakePin
-        self.onOffPin = onOffPin
-        GPIO.setup(self.awakePin, GPIO.IN)
-        GPIO.setup(self.onOffPin, GPIO.OUT)
-        self.pulseOnOff()
-        self.dataStart()
+        self.awake_pin = awake_pin
+        self.on_off_pin = on_off_pin
+        GPIO.setup(self.awake_pin, GPIO.IN)
+        GPIO.setup(self.on_off_pin, GPIO.OUT)
+        self.pulse_on_off()
+        self.data_start()
 
-    def pulseOnOff(self):
-        """Send pulse to GPS to toggle on/off"""
-        # send pulse to switch module on __|--|__
-        GPIO.output(self.onOffPin, GPIO.LOW)
+    def pulse_on_off(self):
+        """
+        Send 100us pulse to GPS to toggle on/off
+         __|--|__
+        """
+        GPIO.output(self.on_off_pin, GPIO.LOW)
         sleep(0.2)
-        GPIO.output(self.onOffPin, GPIO.HIGH)
+        GPIO.output(self.on_off_pin, GPIO.HIGH)
         sleep(0.1)
-        GPIO.output(self.onOffPin, GPIO.LOW)
+        GPIO.output(self.on_off_pin, GPIO.LOW)
 
-    def dataStart(self):
+    def data_start(self):
         """Start separate thread to read GPS module output"""
         # start gps->serial thread
         self.receiver_thread = threading.Thread(target=self.reader)
         self.receiver_thread.setDaemon(1)
         self.receiver_thread.start()
 
-    def dataStop(self):
+    def data_stop(self):
         """Close the serial port"""
         self.port.close()
 
-    def isAwake(self):
+    def is_awake(self):
         """Get the value of the 'awake' pin on the GPS module"""
-        if GPIO.input(self.awakePin):
-            returnVal = True
+        if GPIO.input(self.awake_pin):
+            return_value = True
         else:
-            returnVal = False
-        return returnVal
+            return_value = False
+        return return_value
 
     def reader(self):
         """loop and read GPS data"""
         try:
-            while self.isAwake():
-                gpsData = self.port.readline().rstrip("\n\lf")
-                if self.echoGPS:
-                    self.echoData(gpsData)
-                self.processData(gpsData)
+            while self.is_awake():
+                gps_data = self.port.readline().rstrip("\n\lf")
+                if self.echo_gps:
+                    self.echo_data(gps_data)
+                self.process_data(gps_data)
 
         except:
             raise
 
-    def echoData(self, data):
+    @staticmethod
+    def echo_data(data):
         """Echo raw GPS module output to the screen"""
         print(data)
 
-    def processData(self, nmeaData):
+    def process_data(self, nmea_data):
         """Method for processing raw GPS sentences"""
-        data = re.split(',|\*', nmeaData)
+        data = re.split(',|\*', nmea_data)
         # $GPGSV,4,1,13,19,63,291,35,11,19,258,29,16,35,181,26,18,39,065,26*7A
         if 'GPGSV' in data[0]:
-            self.processGPGSV(data)
+            self._process_gpgsv(data)
         if 'GLGSV' in data[0]:
-            self.processGLGSV(data)
+            self._process_glgsv(data)
         # $GNGSA,A,3,19,11,16,18,07,22,27,15,21,30,,,1.7,1.0,1.4*2E
         if 'GNGSA' in data[0]:
-            self.processGNGSA(data)
+            self._process_gngsa(data)
         if 'GPGGA' in data[0]:
-            self.processGPGGA(data)
+            self._process_gpgga(data)
         if 'GNRMC' in data[0]:
-            self.processGNRMC(data)
+            self._process_gnrmc(data)
 
-    def ddm2dd(self, lat, lon):
+    @staticmethod
+    def ddm2dd(lat, lon):
         """Convert Degree Decimal Minutes to Decimal Degrees"""
-        latDeg = lat[0:2]
-        latMin = lat[2:]
-        # print '{0}:{1}'.format(latDeg, latMin)
-        lonDeg = lon[0:3]
-        lonMin = lon[3:]
-        # print '{0}:{1}'.format(lonDeg, lonMin)
-        latDD = '{0:.06f}'.format(float(latMin)/60 + int(latDeg))
-        # print latDD
-        lonDD = '{0:.06f}'.format(float(lonMin)/60 + int(lonDeg))
-        # print lonDD
-        return (latDD, lonDD)
+        lat_deg = lat[0:2]
+        lat_min = lat[2:]
+        # print '{0}:{1}'.format(lat_deg, lat_min)
+        lon_deg = lon[0:3]
+        lon_min = lon[3:]
+        # print '{0}:{1}'.format(lon_deg, lon_min)
+        lat_dec_deg = '{0:.06f}'.format(float(lat_min) / 60 + int(lat_deg))
+        # print lat_dec_deg
+        lon_dec_dec = '{0:.06f}'.format(float(lon_min) / 60 + int(lon_deg))
+        # print lon_dec_dec
+        return lat_dec_deg, lon_dec_dec
 
-    def processGNRMC(self, data):
+    def _process_gnrmc(self, data):
         """Process GNRMC sentences"""
-        if (data[3] != '' and data[5] != ''):
-            self.latDD, self.lonDD = self.ddm2dd(data[3], data[5])
-            # print 'utm.from_latlon({0}, {1})'.format(self.latDD, self.lonDD)
-            (self.utmEast, self.utmNorth, self.utmZone, self.utmBand) = utm.from_latlon(float(self.latDD), float(self.lonDD))
+        if data[3] != '' and data[5] != '':
+            self.lat_dec_deg, self.lon_dec_deg = self.ddm2dd(data[3], data[5])
+            # print 'utm.from_latlon({0}, {1})'.format(self.lat_dec_deg, self.lon_dec_deg)
+            (self.utm_east, self.utm_north, self.utm_zone, self.utm_band) = utm.from_latlon(float(self.lat_dec_deg),
+                                                                                            float(self.lon_dec_deg))
 
-    def processGPGSV(self, data):
+    def _process_gpgsv(self, data):
         """Process GPGSV sentence"""
-        self.gpsSIV = data[3]
+        # print 'raw_gpsSIV: {0}'.format(data)
+        # print 'SatID: {0} - SNR: {1}'.format(data[4], data[7])
+        if data[2] == '1':
+            self.gps_siv = 0
+        for x in range(0, ((len(data) - 5) / 4)):
+            if data[(x * 4) + 7] != '':
+                self.gps_siv += 1
 
-    def processGLGSV(self, data):
+    def _process_glgsv(self, data):
         """Process GLGSV sentences"""
-        self.gloSIV = data[3]
-        if self.gloSIV == '':
+        # print 'raw_gloSIV: {0}'.format(data)
+        # print 'SatID: {0} - SNR: {1}'.format(data[4], data[7])
+        if data[2] == '1':
             self.gloSIV = 0
+        for x in range(0, ((len(data) - 5) / 4)):
+            print data[(x * 4) + 7]
+            if data[(x * 4) + 7] != '':
+                self.gloSIV += 1
 
-    def processGNGSA(self, data):
+    def _process_gngsa(self, data):
         """Process GNGSA sentences"""
         self.mode1 = data[1]
         self.mode2 = data[2]
-        self.HDOP = data[16]
+        self.hdop = data[16]
         if data[16] != '':
-            self.precision = float(self.HDOP) * self.accuracy
+            self.precision = float(self.hdop) * self.accuracy
 
-    def processGPGGA(self, data):
+    def _process_gpgga(self, data):
         """process GPGGA sentence"""
-        self.setTime(data[1])
+        self.set_time(data[1])
 
-    def setTime(self, time):
+    def set_time(self, time):
         """Set the hour, minutes and seconds variables for the instance"""
         if len(time) > 5:
             self.hour = time[0:2]
@@ -233,38 +249,39 @@ class GPS:
             self.secs = time[4:6]
             # print "Setting time {0}:{1}:{2}".format(self.hour, self.mins, self.secs)
 
-    def setTMZ(self, offset):
+    def set_time_zone_offset(self, offset):
         """Set the time zone offset (in hours) from UTC/GMT"""
-        self.TMZ = offset
+        self.tmz_offset = offset
 
-    def getLocalTime(self):
+    def get_local_time(self):
         """Get the hours, minutes and seconds with time zone offset"""
-        localHour = int(self.hour) + self.TMZ 
-        if localHour > 23:
-            localHour -= 23
-        return '{0}:{1}:{2}'.format(localHour, self.mins, self.secs)
+        local_hour = int(self.hour) + self.tmz_offset
+        if local_hour > 23:
+            local_hour -= 23
+        return '{0}:{1}:{2}'.format(local_hour, self.mins, self.secs)
 
-    def getClock(self):
-        """Get the time (hours and minutes) of the GPS"""
-        localHour = int(self.hour) + self.TMZ 
-        if localHour > 22:
-            localHour -= 0
-        return '{0}{1}'.format(localHour, self.mins)
+    def get_local_clock(self):
+        """Get the time (hours and minutes only) of the GPS with time zone offset"""
+        local_hour = int(self.hour) + self.tmz_offset
+        if local_hour > 22:
+            local_hour -= 0
+        return '{0}{1}'.format(local_hour, self.mins)
 
-    def getSIV(self):
+    def get_sat_count(self):
         """Return the number of satellites in view for the GPS"""
-        print "GPS Satillites : " + str(self.gpsSIV)
-        print "GLONASS Satillites : " + str(self.gloSIV)
-        result = int(self.gpsSIV) + int(self.gloSIV)
+        print "GPS Satillites : " + str(self.gps_siv)
+        print "GLONASS Satillites : " + str(self.glo_siv)
+        result = int(self.gps_siv) + int(self.glo_siv)
         return result
 
-    def hasFix(self):
+    def has_fix(self):
         """Returns if the GPS has 'fix'"""
         if self.mode2 == 1:
-            returnVal = False
+            return_value = False
         else:
-            returnVal = True
-        return returnVal
+            return_value = True
+        return return_value
+
 
 if __name__ == '__main__':
     GPIO.setmode(GPIO.BCM)
@@ -272,27 +289,27 @@ if __name__ == '__main__':
     BTN = BUT(23)
     LD2 = LED(24)
     GPS1 = GPS(18, 22)
-    GPS1.echoGPS = True
-    # GPS1.dataStart()
+    GPS1.echo_gps = True
+    # GPS1.data_start()
 
     print 'Use CTRL-C to end loop'
     try:
         while 1:
             LD1.toggle()
-            if BTN.isOdd():
+            if BTN.is_odd():
                 LD2.on()
             else:
                 LD2.off()
-            print "Button has been pressed %s times" % BTN.getCount()
-            print "GPS module is awake: %s" % GPS1.isAwake()
-            print "GPS has fix? %s" % GPS1.hasFix()
-            print "Satalites in view is: %s" % GPS1.getSIV()
-            print "Time is : " + GPS1.getLocalTime()
-            print "Latitude is: {0} -+- Longitude is: {1}".format(GPS1.latDD, GPS1.lonDD)
-            print "UTM is: {0}, {1}, {2}, {3}".format(GPS1.utmEast,
-                                                      GPS1.utmNorth,
-                                                      GPS1.utmZone,
-                                                      GPS1.utmBand)
+            print "Button has been pressed %s times" % BTN.get_count()
+            print "GPS module is awake: %s" % GPS1.is_awake()
+            print "GPS has fix? %s" % GPS1.has_fix()
+            print "Satalites in view is: %s" % GPS1.get_sat_count()
+            print "Time is : " + GPS1.get_local_time()
+            print "Latitude is: {0} -+- Longitude is: {1}".format(GPS1.lat_dec_deg, GPS1.lon_dec_deg)
+            print "UTM is: {0}, {1}, {2}, {3}".format(GPS1.utm_east,
+                                                      GPS1.utm_north,
+                                                      GPS1.utm_zone,
+                                                      GPS1.utm_band)
             sleep(5)
             # print chr(27) + "[2J"
 
@@ -301,6 +318,6 @@ if __name__ == '__main__':
 
     finally:
         print 'Tidy up before exit'
-        GPS1.dataStop()
-        GPS1.pulseOnOff()
+        GPS1.data_stop()
+        GPS1.pulse_on_off()
         GPIO.cleanup()

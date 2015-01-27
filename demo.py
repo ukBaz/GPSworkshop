@@ -1,10 +1,6 @@
 # Standard Python Imports
 from time import sleep
-import serial
-import threading
-import re
-import os
-import datetime
+from math import hypot
 
 # Raspberry-Pi specific imports
 # Provides interface to GPIO pins
@@ -12,57 +8,95 @@ import RPi.GPIO as GPIO
 
 # Library for CSR GPS board
 import H13467
-# Library for 4tronix Display Dongle
+
+# Library for 4tronix display
 import IPD
+
+
+def read_temp():
+    cpu_temp = ''
+    try:
+        cpu_temp_file = open('/sys/class/thermal/thermal_zone0/temp', 'r')
+        lines = cpu_temp_file.readlines()
+        cpu_temp = round(float(lines[0]) / 1000, 0)
+        cpu_temp_file.close()
+    except IOError:
+        cpu_temp = '-.-'
+
+    return cpu_temp
+
 
 if __name__ == '__main__':
     GPIO.setmode(GPIO.BCM)
-    LD1 = H13467.LED(25)
-    BTN  = H13467.BUT(23)
-    LD2 = H13467.LED(24)
     GPS1 = H13467.GPS(18, 22)
-    GPS1.dataStart()
+    BTN = H13467.BUT(23)
+    LD2 = H13467.LED(24)
+    LD1 = H13467.LED(25)
     DISP = IPD.IPD()
-    DISP.dispStart()
 
-    print 'Use CTRL-C to end loop'
+    N1 = 0
+    N2 = 0
+    E1 = 0
+    E2 = 0
+    dist = 0
+
+    needRef = True
+    GPS1.set_time_zone_offset(0)
+    # BTN.count = 2
+
+    print 'Use CTRL-C to end loop. Cheers.'
     try:
         while 1:
-            LD1.toggle()
-            # BTN.isPressed()
-            print "Button has been pressed %s times" % BTN.getCount()
-            if BTN.isOdd():
-                LD2.on()
-            else:
+            if BTN.get_count() == 0:
+                LD1.off()
                 LD2.off()
-            print "GPS has fix? %s" % GPS1.hasFix()
-            if  not GPS1.hasFix():
-                DISP.setMsg('no SignAL yEt')
-            elif BTN.mode == 0:
-                DISP.setClock(GPS1.getClock())
-            elif BTN.mode == 1:
-                DISP.setMsg('tAPE')
-            elif BTN.mode == 2:
-                DISP.setMsg('oFF-')
-                if (datetime.datetime.now() - BTN.BTNtime).seconds > 5:
-                    BTN.mode = 0
-                elif (BTN.modeTime - BTN.BTNtime).seconds < 0:
-                    print '\n\n\n\n *******  Going Down **********\n\n\n\n'
-                    os.system("shutdown -Ph now")
-            print "GPS module is awake: %s" % GPS1.isAwake()
-            print "Satalites in view is: %s" % GPS1.getSIV()
-            print "Time is : " + GPS1.getLocalTime()
-            print "Latitude is: {0} {1}".format(GPS1.latDeg, GPS1.latMin)
-            print "Longitude is: {0} {1}".format(GPS1.longDeg, GPS1.longMin)
-            sleep(1.5)
-            # print chr(27) + "[2J"
+                print 'Temperature of CPU'
+                temperature = int(read_temp())
+                print '{0}*c'.format(temperature)
+                DISP.set_msg('{0}*c'.format(temperature))
+
+            if BTN.get_count() == 1:
+                LD1.on()
+                LD2.off()
+                print 'Show time'
+                gps_time = GPS1.get_local_clock()
+                print gps_time
+                DISP.set_clock(gps_time)
+
+            if BTN.get_count() == 2:
+                LD1.off()
+                LD2.on()
+                print 'Show satellite count'
+                print '{0:02}:{1:02}'.format(GPS1.gps_siv, GPS1.glo_siv)
+                DISP.set_clock('{0:02}{1:02}'.format(GPS1.gps_siv, GPS1.glo_siv))
+
+            if BTN.get_count() == 3:
+                print 'Show Tapemeasure'
+                LD1.on()
+                LD2.on()
+                if needRef:
+                    E1 = GPS1.utm_east
+                    N1 = GPS1.utm_north
+                    needRef = False
+                E2 = GPS1.utm_east
+                N2 = GPS1.utm_north
+                dist = hypot(N1 - N2, E1 - E2)
+                DISP.set_msg('{0}'.format(int(dist)))
+                print '{0}'.format(int(dist))
+
+            if BTN.get_count() > 3:
+                print 'Reset button count'
+                needRef = True
+                BTN.count = 0
+
+            sleep(2)
 
     except KeyboardInterrupt:
         print '\nInterrupt caught'
 
     finally:
         print 'Tidy up before exit'
-        DISP.clearDisp()
-        GPS1.dataStop()
-        GPS1.pulseOnOff()
+        DISP.clear_display()
+        GPS1.data_stop()
+        GPS1.pulse_on_off()
         GPIO.cleanup()
