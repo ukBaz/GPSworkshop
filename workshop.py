@@ -44,10 +44,10 @@ if __name__ == '__main__':
                 N2 = GPS1.utm_east
                 E2 = GPS1.utm_north
                 dist = hypot(N1 - N2, E1 - E2)
-                DISP.set_msg('{0}'.format(int(dist)))
+                DISP.show_msg('{0}'.format(int(dist)))
                 print '{0}'.format(int(dist))
             else:
-                DISP.set_msg('{0}P{1}'.format(int(dist), int(GPS1.precision)))
+                DISP.show_msg('{0}P{1}'.format(int(dist), int(GPS1.precision)))
                 print 'n1 = {0}'.format(N1)
                 print 'n2 = {0}'.format(N2)
                 print 'e1 = {0}'.format(E1)
@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
     finally:
         print 'Tidy up before exit'
-        DISP.clear_display()
+        DISP._clear_display()
         GPS1.data_stop()
         GPS1.pulse_on_off()
         GPIO.cleanup()

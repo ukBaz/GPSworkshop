@@ -119,8 +119,19 @@ class GPS:
         self.on_off_pin = on_off_pin
         GPIO.setup(self.awake_pin, GPIO.IN)
         GPIO.setup(self.on_off_pin, GPIO.OUT)
-        self.pulse_on_off()
+        self.receiver_thread = None  # To store thread details
+        while not GPIO.input(self.awake_pin):
+            print 'Send pulse to wake up GNSS module'
+            self.pulse_on_off()
+            sleep(1)
         self.data_start()
+
+    @staticmethod
+    def gen_chksum(payload):
+        csum = 0
+        for c in payload:
+            csum ^= ord(c)
+        return '{:02x}'.format(csum)
 
     def pulse_on_off(self):
         """
@@ -136,7 +147,7 @@ class GPS:
     def data_start(self):
         """Start separate thread to read GPS module output"""
         # start gps->serial thread
-        self.receiver_thread = threading.Thread(target=self.reader)
+        self.receiver_thread = threading.Thread(target=self._reader)
         self.receiver_thread.setDaemon(1)
         self.receiver_thread.start()
 
@@ -152,7 +163,7 @@ class GPS:
             return_value = False
         return return_value
 
-    def reader(self):
+    def _reader(self):
         """loop and read GPS data"""
         try:
             while self.is_awake():
@@ -217,17 +228,18 @@ class GPS:
         for x in range(0, ((len(data) - 5) / 4)):
             if data[(x * 4) + 7] != '':
                 self.gps_siv += 1
+                print 'GPS: {0} - strength: {1}'.format(data[(x * 4) + 7], data[(x * 1) + 7])
 
     def _process_glgsv(self, data):
         """Process GLGSV sentences"""
         # print 'raw_gloSIV: {0}'.format(data)
         # print 'SatID: {0} - SNR: {1}'.format(data[4], data[7])
         if data[2] == '1':
-            self.gloSIV = 0
+            self.glo_siv = 0
         for x in range(0, ((len(data) - 5) / 4)):
-            print data[(x * 4) + 7]
             if data[(x * 4) + 7] != '':
-                self.gloSIV += 1
+                print 'glonass: {0} - strength: {1}'.format(data[(x * 4) + 7], data[(x * 1) + 7])
+                self.glo_siv += 1
 
     def _process_gngsa(self, data):
         """Process GNGSA sentences"""
@@ -310,7 +322,7 @@ if __name__ == '__main__':
                                                       GPS1.utm_north,
                                                       GPS1.utm_zone,
                                                       GPS1.utm_band)
-            sleep(5)
+            sleep(10)
             # print chr(27) + "[2J"
 
     except KeyboardInterrupt:
@@ -319,5 +331,6 @@ if __name__ == '__main__':
     finally:
         print 'Tidy up before exit'
         GPS1.data_stop()
-        GPS1.pulse_on_off()
+        if GPIO.input(GPS1.awake_pin):
+            GPS1.pulse_on_off()
         GPIO.cleanup()

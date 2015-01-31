@@ -14,7 +14,6 @@ import IPD
 
 
 def read_temp():
-    cpu_temp = ''
     try:
         cpu_temp_file = open('/sys/class/thermal/thermal_zone0/temp', 'r')
         lines = cpu_temp_file.readlines()
@@ -29,6 +28,7 @@ def read_temp():
 if __name__ == '__main__':
     GPIO.setmode(GPIO.BCM)
     GPS1 = H13467.GPS(18, 22)
+    GPS1.echo_gps = True
     BTN = H13467.BUT(23)
     LD2 = H13467.LED(24)
     LD1 = H13467.LED(25)
@@ -53,7 +53,7 @@ if __name__ == '__main__':
                 print 'Temperature of CPU'
                 temperature = int(read_temp())
                 print '{0}*c'.format(temperature)
-                DISP.set_msg('{0}*c'.format(temperature))
+                DISP.show_msg('{0}*c'.format(temperature))
 
             if BTN.get_count() == 1:
                 LD1.on()
@@ -61,14 +61,14 @@ if __name__ == '__main__':
                 print 'Show time'
                 gps_time = GPS1.get_local_clock()
                 print gps_time
-                DISP.set_clock(gps_time)
+                DISP.show_clock(gps_time)
 
             if BTN.get_count() == 2:
                 LD1.off()
                 LD2.on()
                 print 'Show satellite count'
                 print '{0:02}:{1:02}'.format(GPS1.gps_siv, GPS1.glo_siv)
-                DISP.set_clock('{0:02}{1:02}'.format(GPS1.gps_siv, GPS1.glo_siv))
+                DISP.show_clock('{0:02}{1:02}'.format(GPS1.gps_siv, GPS1.glo_siv))
 
             if BTN.get_count() == 3:
                 print 'Show Tapemeasure'
@@ -81,7 +81,7 @@ if __name__ == '__main__':
                 E2 = GPS1.utm_east
                 N2 = GPS1.utm_north
                 dist = hypot(N1 - N2, E1 - E2)
-                DISP.set_msg('{0}'.format(int(dist)))
+                DISP.show_msg('{0}'.format(int(dist)))
                 print '{0}'.format(int(dist))
 
             if BTN.get_count() > 3:
@@ -96,7 +96,7 @@ if __name__ == '__main__':
 
     finally:
         print 'Tidy up before exit'
-        DISP.clear_display()
+        DISP._clear_display()
         GPS1.data_stop()
         GPS1.pulse_on_off()
         GPIO.cleanup()

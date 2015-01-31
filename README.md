@@ -66,3 +66,6 @@ On remote machine from command line
 ssh -X pi@xxx.xxx.x.xxx
 lxsession
 ```
+# Enable checksums
+Doing Checksum of NMEA sentences:
+http://doschman.blogspot.co.uk/2013/01/calculating-nmea-sentence-checksums.html
