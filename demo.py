@@ -28,7 +28,7 @@ def read_temp():
 if __name__ == '__main__':
     GPIO.setmode(GPIO.BCM)
     GPS1 = H13467.GPS(18, 22)
-    GPS1.echo_gps = True
+    # GPS1.echo_gps = True
     BTN = H13467.BUT(23)
     LD2 = H13467.LED(24)
     LD1 = H13467.LED(25)
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     dist = 0
 
     needRef = True
-    GPS1.set_time_zone_offset(0)
+    # GPS1.set_time_zone_offset(0)
     # BTN.count = 2
 
     print 'Use CTRL-C to end loop. Cheers.'
@@ -71,6 +71,13 @@ if __name__ == '__main__':
                 DISP.show_clock('{0:02}{1:02}'.format(GPS1.gps_siv, GPS1.glo_siv))
 
             if BTN.get_count() == 3:
+                LD1.on()
+                LD2.on()
+                print 'Show Date'
+                print '{0:02}-{1:02}-{2:02}'.format(GPS1.day, GPS1.month, GPS1.year)
+                DISP.show_msg('{0:02}-{1:02}-{2:02}'.format(GPS1.day, GPS1.month, GPS1.year))
+
+            if BTN.get_count() == 99:
                 print 'Show Tapemeasure'
                 LD1.on()
                 LD2.on()

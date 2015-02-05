@@ -104,13 +104,19 @@ class GPS:
         self.hour = 00  # Hours
         self.mins = 00  # Minutes
         self.secs = 00  # seconds
-        self.tmz_offset = 1  # offset from UTC
+        self.tmz_offset = 0  # offset from UTC
         self.lat_dec_deg = 0  # Lattitude Decimal Degrees
         self.lon_dec_deg = 0  # Longitude Decimal Degrees
         self.utm_east = 0  # UTM WGS84 Easting number
         self.utm_north = 0  # UTMWGS84 Northing number
         self.utm_zone = 0  # UTM WGS84 Zone
         self.utm_band = 'U'  # UTM WGS84 Latitude Band
+        self.speed_knots = 0  # Store Speed Over Ground from GNSS
+        self.speed_meters = 0  # Store Speed Over Ground from GNSS
+        self.year = 15  # Store year from GNSS
+        self.month = 01  # Store month from GNSS
+        self.day = 01  # Store day of month from GNSS
+        self.cog = 0  # Course Over Ground
         self.accuracy = 1.5  # Number from originGPS datasheet
         self.hdop = 50  # Horizontal Dilution of Precision
         self.precision = 50  # Calculate precision of measurement ( hdop * Accuracy )
@@ -124,6 +130,7 @@ class GPS:
             print 'Send pulse to wake up GNSS module'
             self.pulse_on_off()
             sleep(1)
+        self.nmea_rca_on()
         self.data_start()
 
     @staticmethod
@@ -218,6 +225,16 @@ class GPS:
             # print 'utm.from_latlon({0}, {1})'.format(self.lat_dec_deg, self.lon_dec_deg)
             (self.utm_east, self.utm_north, self.utm_zone, self.utm_band) = utm.from_latlon(float(self.lat_dec_deg),
                                                                                             float(self.lon_dec_deg))
+        if data[7] != '':
+            self.speed_knots = data[7]  # Speed over ground In knots
+            # use 0.514444444 to convert to meters/second
+            self.speed_meters = int(self.speed_knots * 0.514444444)
+
+        if data[8] != '':
+            self.cog = data[8]  # Course of ground in degrees
+
+        if data[9] != '':
+            self._set_date(data[9])  # Date from GNSS
 
     def _process_gpgsv(self, data):
         """Process GPGSV sentence"""
@@ -251,15 +268,22 @@ class GPS:
 
     def _process_gpgga(self, data):
         """process GPGGA sentence"""
-        self.set_time(data[1])
+        self._set_time(data[1])
 
-    def set_time(self, time):
+    def _set_time(self, time):
         """Set the hour, minutes and seconds variables for the instance"""
         if len(time) > 5:
             self.hour = time[0:2]
             self.mins = time[2:4]
             self.secs = time[4:6]
             # print "Setting time {0}:{1}:{2}".format(self.hour, self.mins, self.secs)
+
+    def _set_date(self, gnss_date):
+        """Set the day, month and year variables for the instance"""
+        if len(gnss_date) > 5:
+            self.day = gnss_date[0:2]
+            self.month = gnss_date[2:4]
+            self.year = gnss_date[4:6]
 
     def set_time_zone_offset(self, offset):
         """Set the time zone offset (in hours) from UTC/GMT"""
@@ -293,6 +317,15 @@ class GPS:
         else:
             return_value = True
         return return_value
+
+    def write_nmea(self, message):
+        self.port.write(message)
+
+    def nmea_rca_on(self):
+        # rmc_on = '$PSRF103,04,00,01,01*21\r\n'
+        rmc_on = '$PSRF103,04,00,01,01*21'
+        # rmc_off = '$PSRF103,04,00,00,01*20'
+        self.write_nmea(rmc_on)
 
 
 if __name__ == '__main__':
