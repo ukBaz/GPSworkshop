@@ -2,6 +2,7 @@
 from time import sleep
 from math import hypot
 
+
 # Raspberry-Pi specific imports
 # Provides interface to GPIO pins
 import RPi.GPIO as GPIO
@@ -42,7 +43,7 @@ if __name__ == '__main__':
 
     needRef = True
     # GPS1.set_time_zone_offset(0)
-    # BTN.count = 2
+    # BTN.count = 3
 
     print 'Use CTRL-C to end loop. Cheers.'
     try:
@@ -50,9 +51,9 @@ if __name__ == '__main__':
             if BTN.get_count() == 0:
                 LD1.off()
                 LD2.off()
-                print 'Temperature of CPU'
+
                 temperature = int(read_temp())
-                print '{0}*c'.format(temperature)
+                print 'Temperature of CPU: {0}*c'.format(temperature)
                 DISP.show_msg('{0}*c'.format(temperature))
 
             if BTN.get_count() == 1:
@@ -66,20 +67,18 @@ if __name__ == '__main__':
             if BTN.get_count() == 2:
                 LD1.off()
                 LD2.on()
-                print 'Show satellite count'
-                print '{0:02}:{1:02}'.format(GPS1.gps_siv, GPS1.glo_siv)
+                print 'Show satellite count {0:02}:{1:02}'.format(GPS1.gps_siv, GPS1.glo_siv)
                 DISP.show_clock('{0:02}{1:02}'.format(GPS1.gps_siv, GPS1.glo_siv))
 
             if BTN.get_count() == 3:
                 LD1.on()
                 LD2.on()
-                print 'Show Date'
-                print '{0:02}-{1:02}-{2:02}'.format(GPS1.day, GPS1.month, GPS1.year)
-                DISP.show_msg('{0:02}-{1:02}-{2:02}'.format(GPS1.day, GPS1.month, GPS1.year))
+                print 'Show Date {0}-{1}-{2}'.format(GPS1.day, GPS1.month, GPS1.year)
+                DISP.show_msg('{0}-{1}-{2}'.format(GPS1.day, GPS1.month, GPS1.year))
 
-            if BTN.get_count() == 99:
-                print 'Show Tapemeasure'
-                LD1.on()
+            if BTN.get_count() == 4:
+                print 'Show Tape-measure'
+                LD1.toggle()
                 LD2.on()
                 if needRef:
                     E1 = GPS1.utm_east
@@ -91,7 +90,14 @@ if __name__ == '__main__':
                 DISP.show_msg('{0}'.format(int(dist)))
                 print '{0}'.format(int(dist))
 
-            if BTN.get_count() > 3:
+            if BTN.get_count() == 5:
+                LD1.toggle()
+                LD2.on()
+                print 'Show Direction {0}'.format(int(round(GPS1.cog, 0)))
+                DISP.show_msg('{0}'.format(int(round(GPS1.cog, 0))))
+
+
+            if BTN.get_count() > 5:
                 print 'Reset button count'
                 needRef = True
                 BTN.count = 0

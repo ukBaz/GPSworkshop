@@ -3,6 +3,8 @@ from time import sleep
 import threading
 import re
 import datetime
+import logging
+logging.basicConfig(level=logging.INFO)
 
 # Raspberry-Pi specific imports
 # Provides interface to GPIO pins
@@ -26,13 +28,13 @@ class LED:
         """turn LED on"""
         self.ledState = 1
         GPIO.output(self.pin, GPIO.HIGH)
-        print 'LED on'
+        logging.info('LED on')
 
     def off(self):
         """turn LED off"""
         self.ledState = 0
         GPIO.output(self.pin, GPIO.LOW)
-        print 'LED off'
+        logging.info('LED off')
 
     def toggle(self):
         """toggle the selected LED on and off"""
@@ -57,18 +59,18 @@ class BUT:
     def _button_callback(self, channel):
         """Callback for button"""
         if GPIO.input(channel):  # if port 23 == 1
-            print "Rising edge detected on {0}".format(channel)
+            logging.debug('Rising edge detected on {0}'.format(channel))
             diff = datetime.datetime.now() - self.BTNtime
-            print 'Button held for: {0}'.format(diff.seconds)
+            logging.debug('Button held for: {0}'.format(diff.seconds))
         else:  # if port 23 != 1
-            print "Falling edge detected on {0}".format(channel)
+            logging.debug('Falling edge detected on {0}'.format(channel))
             self.BTNtime = datetime.datetime.now()
             self.count += 1
             t_count = 0
             while not GPIO.input(channel):
                 sleep(1)
                 t_count += 1
-                print t_count
+                logging.debug('Button count: {0}'.format(t_count))
                 if t_count > 10:
                     self.mode = 2
                     self.modeTime = datetime.datetime.now()
@@ -78,7 +80,7 @@ class BUT:
     def is_pressed(self):
         """Increase button count"""
         if not GPIO.input(self.pin):
-            print 'Button Pressed!'
+            logging.debug('Button Pressed!')
             self.count += 1
 
     def get_count(self):
@@ -111,8 +113,8 @@ class GPS:
         self.utm_north = 0  # UTMWGS84 Northing number
         self.utm_zone = 0  # UTM WGS84 Zone
         self.utm_band = 'U'  # UTM WGS84 Latitude Band
-        self.speed_knots = 0  # Store Speed Over Ground from GNSS
-        self.speed_meters = 0  # Store Speed Over Ground from GNSS
+        self.speed_knots = 0.0  # Store Speed Over Ground from GNSS
+        self.speed_meters = 0.0  # Store Speed Over Ground from GNSS
         self.year = 15  # Store year from GNSS
         self.month = 01  # Store month from GNSS
         self.day = 01  # Store day of month from GNSS
@@ -127,7 +129,7 @@ class GPS:
         GPIO.setup(self.on_off_pin, GPIO.OUT)
         self.receiver_thread = None  # To store thread details
         while not GPIO.input(self.awake_pin):
-            print 'Send pulse to wake up GNSS module'
+            logging.info('Send pulse to wake up GNSS module')
             self.pulse_on_off()
             sleep(1)
         self.nmea_rca_on()
@@ -185,7 +187,7 @@ class GPS:
     @staticmethod
     def echo_data(data):
         """Echo raw GPS module output to the screen"""
-        print(data)
+        logging.info(data)
 
     def process_data(self, nmea_data):
         """Method for processing raw GPS sentences"""
@@ -208,54 +210,58 @@ class GPS:
         """Convert Degree Decimal Minutes to Decimal Degrees"""
         lat_deg = lat[0:2]
         lat_min = lat[2:]
-        # print '{0}:{1}'.format(lat_deg, lat_min)
+        logging.debug('{0}:{1}'.format(lat_deg, lat_min))
         lon_deg = lon[0:3]
         lon_min = lon[3:]
-        # print '{0}:{1}'.format(lon_deg, lon_min)
+        logging.debug('ddm2dd long-deg-min: {0}:{1}'.format(lon_deg, lon_min))
         lat_dec_deg = '{0:.06f}'.format(float(lat_min) / 60 + int(lat_deg))
-        # print lat_dec_deg
+        logging.debug('latitue decimal degree {}'.format(lat_dec_deg))
         lon_dec_dec = '{0:.06f}'.format(float(lon_min) / 60 + int(lon_deg))
-        # print lon_dec_dec
+        logging.debug('longitude decimal degree {}'.format(lon_dec_dec))
         return lat_dec_deg, lon_dec_dec
 
     def _process_gnrmc(self, data):
         """Process GNRMC sentences"""
         if data[3] != '' and data[5] != '':
             self.lat_dec_deg, self.lon_dec_deg = self.ddm2dd(data[3], data[5])
-            # print 'utm.from_latlon({0}, {1})'.format(self.lat_dec_deg, self.lon_dec_deg)
+            logging.debug('utm.from_latlon({0}, {1})'.format(self.lat_dec_deg, self.lon_dec_deg))
             (self.utm_east, self.utm_north, self.utm_zone, self.utm_band) = utm.from_latlon(float(self.lat_dec_deg),
                                                                                             float(self.lon_dec_deg))
         if data[7] != '':
-            self.speed_knots = data[7]  # Speed over ground In knots
+            self.speed_knots = float(data[7])  # Speed over ground In knots
             # use 0.514444444 to convert to meters/second
-            self.speed_meters = int(self.speed_knots * 0.514444444)
+            logging.debug('Knots: {0}'.format(self.speed_knots))
+            self.speed_meters = self.speed_knots * 0.514444444
+            logging.debug('Speed (m/s) : {}'.format(self.speed_meters))
 
         if data[8] != '':
             self.cog = data[8]  # Course of ground in degrees
+            logging.debug('Course {}'.format(self.cog))
 
         if data[9] != '':
             self._set_date(data[9])  # Date from GNSS
+            logging.debug('Date: {}'.format(data[9]))
 
     def _process_gpgsv(self, data):
         """Process GPGSV sentence"""
-        # print 'raw_gpsSIV: {0}'.format(data)
-        # print 'SatID: {0} - SNR: {1}'.format(data[4], data[7])
+        logging.debug('raw_gpsSIV: {0}'.format(data))
+        logging.debug('SatID: {0} - SNR: {1}'.format(data[4], data[7]))
         if data[2] == '1':
             self.gps_siv = 0
         for x in range(0, ((len(data) - 5) / 4)):
             if data[(x * 4) + 7] != '':
                 self.gps_siv += 1
-                print 'GPS: {0} - strength: {1}'.format(data[(x * 4) + 7], data[(x * 1) + 7])
+                logging.debug('GPS: {0} - strength: {1}'.format(data[(x * 4) + 7], data[(x * 1) + 7]))
 
     def _process_glgsv(self, data):
         """Process GLGSV sentences"""
-        # print 'raw_gloSIV: {0}'.format(data)
-        # print 'SatID: {0} - SNR: {1}'.format(data[4], data[7])
+        logging.debug('raw_gloSIV: {0}'.format(data))
+        logging.debug('SatID: {0} - SNR: {1}'.format(data[4], data[7]))
         if data[2] == '1':
             self.glo_siv = 0
         for x in range(0, ((len(data) - 5) / 4)):
             if data[(x * 4) + 7] != '':
-                print 'glonass: {0} - strength: {1}'.format(data[(x * 4) + 7], data[(x * 1) + 7])
+                logging.debug('glonass: {0} - strength: {1}'.format(data[(x * 4) + 7], data[(x * 1) + 7]))
                 self.glo_siv += 1
 
     def _process_gngsa(self, data):
@@ -276,7 +282,7 @@ class GPS:
             self.hour = time[0:2]
             self.mins = time[2:4]
             self.secs = time[4:6]
-            # print "Setting time {0}:{1}:{2}".format(self.hour, self.mins, self.secs)
+            logging.debug('Setting time {0}:{1}:{2}'.format(self.hour, self.mins, self.secs))
 
     def _set_date(self, gnss_date):
         """Set the day, month and year variables for the instance"""
@@ -305,8 +311,8 @@ class GPS:
 
     def get_sat_count(self):
         """Return the number of satellites in view for the GPS"""
-        print "GPS Satillites : " + str(self.gps_siv)
-        print "GLONASS Satillites : " + str(self.glo_siv)
+        logging.debug('GPS Satillites : {}'.format(self.gps_siv))
+        logging.debug('GLONASS Satillites : {}'.format(self.glo_siv))
         result = int(self.gps_siv) + int(self.glo_siv)
         return result
 

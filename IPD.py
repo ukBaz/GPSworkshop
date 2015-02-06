@@ -8,7 +8,8 @@ import sys
 import socket
 import fcntl
 import struct
-
+import logging
+logging.basicConfig(level=logging.INFO)
 
 # Raspberry Pi specific libraries
 import smbus
@@ -30,36 +31,50 @@ class IPD:
         self.brightness = 0.0000005
         self.scrollSpeed = 90
         self.clock = False
+        self.dec1 = False  # Display message to one decimal place
         self.to_display = '----'
-        self.digits2 = {'0': 0b00111111,
-                        '1': 0b00000110,
-                        '2': 0b01011011,
-                        '3': 0b01001111,
-                        '4': 0b01100110,
-                        '5': 0b01101101,
-                        '6': 0b01111101,
-                        '7': 0b00000111,
-                        '8': 0b01111111,
-                        '9': 0b01101111,
-                        ' ': 0b00000000,
-                        '-': 0b01000000,
-                        '.': 0b10000000,
-                        'A': 0b01110111,
-                        'r': 0b01010000,
-                        'E': 0b01111001,
-                        'n': 0b01010100,
-                        'o': 0b01011100,
-                        'F': 0b01110001,
-                        'i': 0b00000100,
-                        'y': 0b01101110,
-                        't': 0b01111000,
-                        'S': 0b01101101,
-                        'g': 0b01101111,
-                        'L': 0b00111000,
-                        'P': 0b01110011,
-                        'c': 0b01011000,
-                        '*': 0b01100011,
-                        '?': 0b01010011}
+        self.digits = {'0': 0b00111111,
+                       '1': 0b00000110,
+                       '2': 0b01011011,
+                       '3': 0b01001111,
+                       '4': 0b01100110,
+                       '5': 0b01101101,
+                       '6': 0b01111101,
+                       '7': 0b00000111,
+                       '8': 0b01111111,
+                       '9': 0b01101111,
+                       '*': 0b01100011,
+                       '?': 0b01010011,
+                       ' ': 0b00000000,
+                       '-': 0b01000000,
+                       '.': 0b10000000,
+                       'a': 0b01110111,
+                       'b': 0b01111100,
+                       'c': 0b01011000,
+                       'd': 0b01011110,
+                       'e': 0b01111001,
+                       'f': 0b01110001,
+                       'g': 0b01101111,
+                       'h': 0b01110100,
+                       'i': 0b00000100,
+                       'j': 0b00011110,
+                       'k': 0b01111010,
+                       'l': 0b00111000,
+                       'm': 0b00010101,
+                       'n': 0b01010100,
+                       'o': 0b01011100,
+                       'p': 0b01110011,
+                       'q': 0b01101011,
+                       'r': 0b01010000,
+                       's': 0b01101101,
+                       't': 0b01111000,
+                       'u': 0b00011100,
+                       'v': 0b01100010,
+                       'w': 0b00101010,
+                       'x': 0b00110110,
+                       'y': 0b01101110,
+                       'z': 0b01011011}
+
         self.location = {'1': 0b00000001,
                          '2': 0b00000010,
                          '3': 0b00000100,
@@ -99,21 +114,25 @@ class IPD:
         # Unselect position
         self.bus.write_byte_data(self.addr, 0x13, 0xff)
 
-    def _send4digits(self, digits):
+    def _send4digits(self, string_in):
         """
         Send four text characters to be displayed
-        :param digits: Four characters to display
+        :param string_in: Four characters to display
         :return:
         """
-        # print 'Send digits: {0} '.format(self.digits2[str(digits[3])])
-        self._send_digit(int(self.digits2[str(digits[3])]), self.location['1'])
-        self._send_digit(int(self.digits2[str(digits[2])]), self.location['2'])
-        if self.clock:
-            self._send_digit(int(self.digits2[str(digits[1])] | 0b10000000), self.location['3'])
-            self._send_digit(int(self.digits2[str(digits[0])] | 0b10000000), self.location['4'])
+        digits = string_in.lower()
+        # print 'Send digits: {0} '.format(self.digits[str(digits[3])])
+        self._send_digit(int(self.digits[str(digits[3])]), self.location['1'])
+        if self.dec1:
+            self._send_digit(int(self.digits[str(digits[2])] | 0b10000000), self.location['2'])
         else:
-            self._send_digit(int(self.digits2[str(digits[1])]), self.location['3'])
-            self._send_digit(int(self.digits2[str(digits[0])]), self.location['4'])
+            self._send_digit(int(self.digits[str(digits[2])]), self.location['2'])
+        if self.clock:
+            self._send_digit(int(self.digits[str(digits[1])] | 0b10000000), self.location['3'])
+            self._send_digit(int(self.digits[str(digits[0])] | 0b10000000), self.location['4'])
+        else:
+            self._send_digit(int(self.digits[str(digits[1])]), self.location['3'])
+            self._send_digit(int(self.digits[str(digits[0])]), self.location['4'])
 
     def _display_start(self):
         """
@@ -131,6 +150,9 @@ class IPD:
         :return:
         """
         while 1:
+            for i in self.to_display.lower():
+                if i not in self.digits.keys():
+                    self.to_display = self.to_display.replace(i, '-')
             if len(self.to_display) == 4:
                 self._send4digits(self.to_display)
             elif len(self.to_display) < 4:
@@ -139,6 +161,8 @@ class IPD:
             else:
                 pad_string = ' ' * 4 + self.to_display + ' ' * 4
                 for i in range(0, len(pad_string) - 3):
+                    if pad_string != ' ' * 4 + self.to_display + ' ' * 4:
+                        break
                     for s in range(0, self.scrollSpeed):
                         loc1 = pad_string[i]
                         loc2 = pad_string[(i + 1)]
@@ -173,6 +197,12 @@ class IPD:
         self.clock = False
         self.to_display = value
 
+    def show_1decimal(self, value):
+        for_display = value.replace('.', '')
+        self.dec1 = True
+        self.clock = False
+        self.to_display = for_display
+
     @staticmethod
     def _get_ip_address(ifname):
         """
@@ -195,10 +225,13 @@ class IPD:
         words = ''
         ip_address = self._get_ip_address('eth0')
         print ip_address
+        """
         for x in ip_address:
             words += x.replace('.', '-')
         print words
-        self.to_display = words
+        """
+        print ip_address.replace('.', '-')
+        self.to_display = ip_address.replace('.', '-')
 
     def _clear_display(self):
         """
@@ -213,27 +246,27 @@ class IPD:
         Needs to stop display thread to work correctly
         :return:
         """
-        for x in sorted(self.digits2):
-            for y in sorted(self.location):
-                for s in range(0, self.scrollSpeed):
-                    self._send_digit(self.digits2[x], self.location[y])
-        for x in sorted(self.digits2):
-            disp_string = x, x, x, x
-            for s in range(0, self.scrollSpeed):
-                self._send4digits(disp_string)
-        for x in range(0, 255):
-            for s in range(0, self.scrollSpeed):
-                self._send_digit(x, 1)
-                self._send_digit(x, 2)
-                self._send_digit(x, 4)
-                self._send_digit(x, 8)
+        for x in sorted(self.digits):
+            for y in range(0, 4):
+                to_show = x + ' ' * int(y)
+                self.show_msg(to_show)
+                time.sleep(0.25)
 
+        for x in sorted(self.digits):
+            disp_string = '{}{}{}{}'.format(x, x, x, x)
+            self.show_msg(disp_string)
+            time.sleep(0.5)
+
+        for x in range(0, 255):
+            disp_string = '{}{}{}{}'.format(chr(x), chr(x), chr(x), chr(x))
+            self.show_msg(disp_string)
+            time.sleep(0.5)
 
 if __name__ == '__main__':
     IPD1 = IPD()
     try:
         if len(sys.argv) > 1:
-            allChars = list(IPD1.digits2.keys())
+            allChars = list(IPD1.digits.keys())
             word = '-'.join(allChars)
             print word
             print 'change'
