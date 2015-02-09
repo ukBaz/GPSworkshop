@@ -59,9 +59,8 @@ if __name__ == '__main__':
             if BTN.get_count() == 1:
                 LD1.on()
                 LD2.off()
-                print 'Show time'
                 gps_time = GPS1.get_local_clock()
-                print gps_time
+                print 'Show time: {0}'.format(gps_time)
                 DISP.show_clock(gps_time)
 
             if BTN.get_count() == 2:
@@ -77,7 +76,6 @@ if __name__ == '__main__':
                 DISP.show_msg('{0}-{1}-{2}'.format(GPS1.day, GPS1.month, GPS1.year))
 
             if BTN.get_count() == 4:
-                print 'Show Tape-measure'
                 LD1.toggle()
                 LD2.on()
                 if needRef:
@@ -87,17 +85,34 @@ if __name__ == '__main__':
                 E2 = GPS1.utm_east
                 N2 = GPS1.utm_north
                 dist = hypot(N1 - N2, E1 - E2)
+                print 'Show Tape-measure: {0}'.format(int(dist))
                 DISP.show_msg('{0}'.format(int(dist)))
-                print '{0}'.format(int(dist))
 
             if BTN.get_count() == 5:
+                LD1.on()
+                LD2.toggle()
+                print 'Show Direction over ground: {0}'.format(GPS1.cog)
+                DISP.show_msg('{0}'.format(GPS1.cog))
+
+            if BTN.get_count() == 6:
                 LD1.toggle()
-                LD2.on()
-                print 'Show Direction {0}'.format(int(round(GPS1.cog, 0)))
-                DISP.show_msg('{0}'.format(int(round(GPS1.cog, 0))))
+                LD2.toggle()
+                print 'Show speed (knots): {0}'.format(GPS1.speed_knots)
+                DISP.show_msg('{0}'.format(GPS1.speed_knots))
 
+            if BTN.get_count() == 7:
+                LD1.toggle()
+                LD2.off()
+                print 'Show speed (meters) {0}'.format(GPS1.speed_meters)
+                DISP.show_msg('{0}'.format(GPS1.speed_meters))
 
-            if BTN.get_count() > 5:
+            if BTN.get_count() == 8:
+                LD1.off()
+                LD2.toggle()
+                print 'Show Altitude {0}'.format(GPS1.alt_msl)
+                DISP.show_msg('{0}'.format(GPS1.alt_msl))
+
+            if BTN.get_count() > 8:
                 print 'Reset button count'
                 needRef = True
                 BTN.count = 0

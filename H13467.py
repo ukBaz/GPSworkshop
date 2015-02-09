@@ -115,6 +115,7 @@ class GPS:
         self.utm_band = 'U'  # UTM WGS84 Latitude Band
         self.speed_knots = 0.0  # Store Speed Over Ground from GNSS
         self.speed_meters = 0.0  # Store Speed Over Ground from GNSS
+        self.alt_msl = 0.0  # Store of calculated altitude above Mean Sea Level
         self.year = 15  # Store year from GNSS
         self.month = 01  # Store month from GNSS
         self.day = 01  # Store day of month from GNSS
@@ -132,7 +133,7 @@ class GPS:
             logging.info('Send pulse to wake up GNSS module')
             self.pulse_on_off()
             sleep(1)
-        self.nmea_rca_on()
+        # self.nmea_rca_on()
         self.data_start()
 
     @staticmethod
@@ -222,20 +223,21 @@ class GPS:
 
     def _process_gnrmc(self, data):
         """Process GNRMC sentences"""
+        '$GNRMC,203020.253,A,5211.1719,N,00010.2624,E,2.88,358.90,090215,,,A*77'
         if data[3] != '' and data[5] != '':
             self.lat_dec_deg, self.lon_dec_deg = self.ddm2dd(data[3], data[5])
             logging.debug('utm.from_latlon({0}, {1})'.format(self.lat_dec_deg, self.lon_dec_deg))
             (self.utm_east, self.utm_north, self.utm_zone, self.utm_band) = utm.from_latlon(float(self.lat_dec_deg),
                                                                                             float(self.lon_dec_deg))
         if data[7] != '':
-            self.speed_knots = float(data[7])  # Speed over ground In knots
+            self.speed_knots = int(round(float(data[7]),0))  # Speed over ground In knots
             # use 0.514444444 to convert to meters/second
             logging.debug('Knots: {0}'.format(self.speed_knots))
-            self.speed_meters = self.speed_knots * 0.514444444
+            self.speed_meters = int(round(self.speed_knots * 0.514444444, 0))
             logging.debug('Speed (m/s) : {}'.format(self.speed_meters))
 
         if data[8] != '':
-            self.cog = data[8]  # Course of ground in degrees
+            self.cog = int(round(float(data[8]), 2))  # Course of ground in degrees
             logging.debug('Course {}'.format(self.cog))
 
         if data[9] != '':
@@ -244,6 +246,11 @@ class GPS:
 
     def _process_gpgsv(self, data):
         """Process GPGSV sentence"""
+        """
+        $GPGSV,3,1,10,29,26,191,35,25,65,263,31,12,69,063,30,06,20,057,19*7F
+        $GPGSV,3,2,10,14,47,273,,02,20,101,,06,20,057,,31,15,301,*7B
+        $GPGSV,3,3,10,32,08,315,,03,03,354,*74
+        """
         logging.debug('raw_gpsSIV: {0}'.format(data))
         logging.debug('SatID: {0} - SNR: {1}'.format(data[4], data[7]))
         if data[2] == '1':
@@ -255,6 +262,11 @@ class GPS:
 
     def _process_glgsv(self, data):
         """Process GLGSV sentences"""
+        """
+        $GLGSV,3,1,10,69,17,262,21,79,60,319,,88,58,083,,78,57,086,*6C
+        $GLGSV,3,2,10,81,33,165,,87,23,029,,70,22,318,,77,08,107,*68
+        $GLGSV,3,3,10,80,06,295,,71,04,004,*62
+        """
         logging.debug('raw_gloSIV: {0}'.format(data))
         logging.debug('SatID: {0} - SNR: {1}'.format(data[4], data[7]))
         if data[2] == '1':
@@ -266,6 +278,7 @@ class GPS:
 
     def _process_gngsa(self, data):
         """Process GNGSA sentences"""
+        '$GNGSA,A,2,29,25,12,,,,,,,,,,4.4,3.0,3.2*20'
         self.mode1 = data[1]
         self.mode2 = data[2]
         self.hdop = data[16]
@@ -274,7 +287,10 @@ class GPS:
 
     def _process_gpgga(self, data):
         """process GPGGA sentence"""
+        '$GPGGA,203015.253,5211.1696,N,00010.2611,E,1,03,3.0,-41.8,M,47.0,M,,0000*44'
         self._set_time(data[1])
+        if data[9] != '':
+            self.alt_msl = int(round(float(data[9]), 0))
 
     def _set_time(self, time):
         """Set the hour, minutes and seconds variables for the instance"""
