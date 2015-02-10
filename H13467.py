@@ -113,9 +113,9 @@ class GPS:
         self.utm_north = 0  # UTMWGS84 Northing number
         self.utm_zone = 0  # UTM WGS84 Zone
         self.utm_band = 'U'  # UTM WGS84 Latitude Band
-        self.speed_knots = 0.0  # Store Speed Over Ground from GNSS
-        self.speed_meters = 0.0  # Store Speed Over Ground from GNSS
-        self.alt_msl = 0.0  # Store of calculated altitude above Mean Sea Level
+        self.speed_knots = 0  # Store Speed Over Ground from GNSS
+        self.speed_meters = 0  # Store Speed Over Ground from GNSS
+        self.alt_msl = 0  # Store of calculated altitude above Mean Sea Level
         self.year = 15  # Store year from GNSS
         self.month = 01  # Store month from GNSS
         self.day = 01  # Store day of month from GNSS

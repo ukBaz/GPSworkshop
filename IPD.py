@@ -233,7 +233,7 @@ class IPD:
         print ip_address.replace('.', '-')
         self.to_display = ip_address.replace('.', '-')
 
-    def _clear_display(self):
+    def clear_display(self):
         """
         Used to clean up the display on exit from program
         :return:
@@ -279,4 +279,4 @@ if __name__ == '__main__':
         print '\nInterrupt caught'
 
     finally:
-        IPD1._clear_display()
+        IPD1.clear_display()
