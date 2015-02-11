@@ -69,3 +69,12 @@ lxsession
 # Enable checksums
 Doing Checksum of NMEA sentences:
 http://doschman.blogspot.co.uk/2013/01/calculating-nmea-sentence-checksums.html
+# Additional exercise idea
+http://sunrise-sunset.org/api
+```
+import urllib, json
+url = "http://api.sunrise-sunset.org/json?lat=52.1862398&lng=0.172065&date=today"
+response = urllib.urlopen(url)
+data = json.loads(response.read())
+data['results']['sunrise']
+```
