@@ -1,127 +1,133 @@
 <html>
-  <head>
+<head>
     <title>measure with GPS</title>
     <link rel="stylesheet" type="text/css" href="css/workshops.css">
-  <body>
-  <div id="header">
+<body>
+<div id="header">
     <h1>Building a tape measure with GPS</h1>
-  </div>
-    <p align=center>
-	 <img src="images/H13467_tilt.png" alt="H13467 Board" width=70%>
-	 </p>
-	 <p align=center>
-	 <img src="images/csr_logo.gif"alt="csr logo" width=30%>
-	 <img src="images/RPi_logo.png"alt="csr logo" width=30%>
-	 <img src="images/python_logo.png"alt="csr logo" width=30%>
-	 </p>
+</div>
+<p align=center>
+    <img src="images/H13467_tilt.png" alt="H13467 Board" width=70%>
+</p>
+<p align=center>
+    <img src="images/csr_logo.gif" alt="csr logo" width=30%>
+    <img src="images/RPi_logo.png" alt="Raspberry Pi logo" width=30%>
+    <img src="images/python_logo.png" alt="Python logo" width=30%>
+</p>
 <P CLASS="pagebreak"></p>
 <h2>Overview</h2>
 <p>In this workshop you will use the Raspberry Pi (RPi) to control a board that contains</P>
 <p align=center>
-<img src="images/H13467_connections.jpg"alt="Workstation connected up" width=80%>
+    <img src="images/H13467_connections.jpg" alt="Workstation connected up" width=80%>
 </p>
 
-<p>
-This workshop will show you how to:
+<p>This workshop will show you how to:</p>
 <ul>
-<li>Sense when the button has been pressed</li>
-<li>Capture a coordinate from the GPS module</li>
-<li>Display the distance from that point</li>
-<li>You can then experiment with adding your own functionality</li>
+    <li>Sense when the button has been pressed</li>
+    <li>Capture a coordinate from the GPS module</li>
+    <li>Display the distance from that point</li>
+    <li>You can then experiment with adding your own functionality</li>
 </ul>
+<p>
+    This workshop uses the Python programming language to do the coding. Python is a
+    language that was designed to be easy to read and easy to learn, and so is ideal for beginners and experts alike.
+    There are also lots of resources available where you can find more information on what you have learnt today.
+    As GPS devices works best outdoors so once the coding is finished we will take our hardware outside and measure
 </p>
-
-This workshop uses the Python programming language to do the coding. Python is a 
-language that was designed to be easy to read and easy to learn, and so is ideal for 
-beginners and experts alike. 
-There are also lots of resources available where you can find more information on 
-what you have learnt today.
-As GPS devices works best outdoors so once the coding is finished we will take our 
-hardware outside and measure
 
 <h2>Audience Expectations:</h2>
-It is expected that you will have some experience of using a Raspberry Pi (or similar) 
-and some Python coding.
-Not to worry if you don't fit that description as the steps are explained in the 
-workshop and there are people on hand to help.
-<h2>Goal:</h2>
-We will use some existing software modules along with a little of our own code to 
-end up with a system that will allow us to measure distances in metres.
- <h2>Let's Get Started!</h2>
+<p>
+    It is expected that you will have some experience of using a Raspberry Pi (or similar) and some Python coding.
+    Not to worry if you don't fit that description as the steps are explained in the workshop and there are people
+    on hand to help.
+</p>
 
-In this workshop you will be working in a Linux Operating system environment. This 
-is an alternative to Microsoft Windows popular with all types of Engineers.
-Linux commands are indicated by lines starting with; >
+<h2>Goal:</h2>
+<p>
+    We will use some existing software modules along with a little of our own code to end up with a system that
+    will allow us to measure distances in metres.
+</p>
+<h2>Let's Get Started!</h2>
+
+<p>
+    In this workshop you will be working in a Linux Operating system environment. This is an alternative to
+    Microsoft Windows popular with all types of Engineers. Linux commands are indicated by lines starting with; >
+</p>
 <pre>
-> The commands for you to type, or text you will see in 
-the Linux Terminal, are in this bold text, and have a > 
-at the beginning (don't type this)
+    > The commands for you to type, or text you will see in
+    the Linux Terminal, are in this text, and have a >
+    at the beginning (don't type this)
 </pre>
-<p id="emphesis">Logging into the Raspberry Pi:</p>
-When the RPi starts up you will be prompted to log in. The details are:
+<p class="emphesis">Logging into the Raspberry Pi:</p>
+<p>When the RPi starts up you will be prompted to log in. The details are:</p>
 <pre>
-> User: pi
-> Password: raspberry
+    > User: pi
+    > Password: raspberry
 </pre>
-<p id="emphesis">Getting a graphical desktop:</p>
-<p>Once you have logged in you will need to start the graphical desktop. This can be 
-done by typing;</p>
+<p class="emphesis">Getting a graphical desktop:</p>
+<p>Once you have logged in you will need to start the graphical desktop. This can be done by typing;</p>
 <pre>> startx</pre>
-<p id="emphesis">Getting a Linux command prompt:</p>
-<p>Once the desktop has started click on the menus to open an "LXTerminal" which is a 
-Linux command prompt window.</p>
+<p class="emphesis">Getting a Linux command prompt:</p>
+<p>
+    Once the desktop has started click on the menus to open an "LXTerminal" which is a Linux command prompt window.
+</p>
 <p align=center>
-<img src="images/LXterminal_pick.jpg"alt="Workstation connected up" width=50%>
+    <img src="images/LXterminal_pick.jpg" alt="LX Terminal on menu" width=50%>
 </p>
  
-<p id="emphesis">Some basic Linux commands:</p>
+<p class="emphesis">Some basic Linux commands:</p>
 <p>Change to the directory where the Python libraries are that we will use;</p>
 <pre>
-> cd python/GPS
+    > cd python/GPS
 </pre>
 <p>
-This is where we will run our python script from; more on this in a minute.<br>
-To list the contents of the is directory type; </p>
+    This is where we will run our python script from; more on this in a minute.<br>
+    To list the contents of the is directory type; </p>
 <pre>
-> ls 
+    > ls
 </pre>
 <p>
-To be able to see the sizes of the files in human readable format, type; </p>
+    To be able to see the sizes of the files in human readable format, type;
+</p>
 <pre>
-> ls -lh
+    > ls -lh
 </pre>
 <p align=center>
-  <img src="images/ls_in_term.jpg"alt="Long listing of directory" width=70%>
+    <img src="images/ls_in_term.jpg" alt="Long listing of directory" width=70%>
 </p>
 
-<p id="emphesis">Starting the Python Integrated Development Environment (idle):</p>
+<p class="emphesis">Starting the Python Integrated Development Environment (idle):</p>
 <p>On the command line type; </p>
 <pre>
-> sudo idle -e myGPS.py
+    > sudo idle -e myGPS.py
 </pre>
  
 
-<p>"sudo" means we are running as a Super User which we will need so that we have 
-access to the GPIO pins. myGPS.py is the name of the file where we will store our 
-code.</p>
+<p>
+    "sudo" means we are running as a Super User which we will need so that we have access to the GPIO pins.
+    myGPS.py is the name of the file where we will store our code.
+</p>
 <h2>Import:</h2>
-<p>Python scripts can import code from modules. It is customary but not required to 
-place all import statements at the beginning of a script. Sometimes we will import 
-whole modules and at other times we will just import certain functions from a module 
-e.g. the sleep function from within the time module.</p>
+<p>
+    Python scripts can import code from modules. It is customary but not required to place all import statements
+    at the beginning of a script. Sometimes we will import whole modules and at other times we will just import
+    certain functions from a module e.g. the sleep function from within the time module.
+</p>
 <h2>While loop:</h2>
-<p>We are going to use a while loop to continuously repeat our code. So we can break 
-out of the loop with some degree of control we are going to use "try, except and 
-finally" functionality of Python to capture us breaking out of the loop with a CTRL-C 
-and tidy up before we exit the script.</p>
+<p>
+    We are going to use a while loop to continuously repeat our code. So we can break out of the loop with some
+    degree of control we are going to use "try, except and finally" functionality of Python to capture us breaking
+    out of the loop with a CTRL-C and tidy up before we exit the script.
+</p>
 <h2>Object Orientated:</h2>
-<p>We are going to instantiate objects such as BTN (button), LD1 (LED 1), LD2 (LED 
-2), GPS1 (GPS device) and DISP (display on the circuit board). This will allow us to 
-read attributes and methods of those objects.</p>
+<p>
+    We are going to instantiate objects such as BTN (button), LD1 (LED 1), LD2 (LED 2), GPS1 (GPS device)
+    and DISP (display on the circuit board). This will allow us to read attributes and methods of those objects.
+</p>
 <h2>Distance Calculator:</h2>
-<p>Now enter the following code into the IDLE text editor you started. This is the code 
-for a distance calculator that will run on the circuit board using the RPi and the CSR 
-GPS chip.
+<p>
+    Now enter the following code into the IDLE text editor you started. This is the code for a distance calculator
+    that will run on the circuit board using the RPi and the CSR GPS chip.
 </p>
 <h2>Code:</h2>
 <pre>
@@ -212,182 +218,217 @@ if __name__ == '__main__':
 </pre>
 
 <h2>Testing Your Code:</h2>
-<p>When you are ready to run your code;
+<p>When you are ready to run your code;</p>
 <ul>
-<li>Save your code (File menu)</li>
-<li>Run Module from the IDLE Run menu (or you could use the F5 key)</li>
-<ul><li>This will run your code so you can test it and debug it</li></ul>
+    <li>Save your code (File menu)</li>
+    <li>Run Module from the IDLE Run menu (or you could use the F5 key)
+        <ul>
+            <li>This will run your code so you can test it and debug it</li>
+        </ul>
+    </li>
 </ul>
-</p>
+
 
 <p align=center>
-  <img src="images/run_idle.jpg"alt="Run Code From IDLE" width=70%>
+    <img src="images/run_idle.jpg" alt="Run Code From IDLE" width=70%>
 </p>
 
 <p>
-When you run this code you will see output on your monitor (from the "print" 
-statements in the code), and also on the display on the circuit board (from the 
-DISP.setMsg statements in the code).</p>
-
-<p>Debugging your code means to test it and find any errors that prevent it running as 
-you would like it to, or in fact not running at all!</p>
-
-<p>Debugging tips;
-<ul>
-  <li>Do you have syntax errors? </li>
-    <ul><li>If so the problem code will be highlighted by the debugger to help you 
-find your problem. Try checking your spelling, spaces, and tabs.</li></ul>
-  <li>No syntax errors, but errors while running the code?
-    <ul><li>The debugger will help you by telling you what line of code it thinks 
-the problem is on. You can find what line of the code you are on by 
-looking in the bottom right corner of the text editor.</li></ul>
-  <li>When running your code try pushing the button on the circuit board and see if 
-the display changes, or if you get any further errors.</li>
-</li></ul>
+    When you run this code you will see output on your monitor (from the "print" statements in the code),
+    and also on the display on the circuit board (from the DISP.setMsg statements in the code).
 </p>
-<p id="emphesis">Before taking our build outside:</p>
-<p>Before we can take hardware outside we need to ensure our code will run 
-automatically as we will not have a screen and keyboard outside.
-We will make this happen by using the Linux capabilities of "crontab". 
-Crontab executes scripts at specific times or in our case, at boot up.
-To edit the crontab use the following command on the Linux prompt; </p>
+
+<p>
+    Debugging your code means to test it and find any errors that prevent it running as you would like it to,
+    or in fact not running at all!
+</p>
+
+<p>Debugging tips;</p>
+  <ul>
+      <li>Do you have syntax errors?
+          <ul>
+            <li>If so the problem code will be highlighted by the debugger to help you find your problem. Try checking
+                your spelling, spaces, and tabs.</li>
+          </ul>
+      </li>
+      <li>No syntax errors, but errors while running the code?
+          <ul>
+              <li>The debugger will help you by telling you what line of code it thinks the problem is on. You can find
+              what line of the code you are on by looking in the bottom right corner of the text editor.</li>
+          </ul>
+      </li>
+      <li>When running your code try pushing the button on the circuit board and see if the display changes, or if
+          you get any further errors.
+      </li>
+  </ul>
+
+<p class="emphesis">Before taking our build outside:</p>
+<p>
+    Before we can take hardware outside we need to ensure our code will run automatically as we will not have
+    a screen and keyboard outside. We will make this happen by using the Linux capabilities of "crontab".
+    Crontab executes scripts at specific times or in our case, at boot up.
+    To edit the crontab use the following command on the Linux prompt;
+</p>
 <pre>> crontab -e </pre>
 
 <p>And add the following line to the file;</p>
 <pre>
-@reboot sudo python /home/pi/python/GPS/myGPS.py
+    @reboot sudo python /home/pi/python/GPS/myGPS.py
 </pre>
 
-<p>Make sure that the file name is the same as the one you saved your work in. Save the 
-changes to the crontab. </p>
+<p>
+    Make sure that the file name is the same as the one you saved your work in. Save the changes to the crontab.
+</p>
 
-<p><b>Tip:</b> there are command instructions at the bottom of the crontab window showing 
-you how to save this. ^ in Linux means the Ctrl button so ^O means hold down the 
-Ctrl button and press O.</p>
+<p>
+    <b>Tip:</b> there are command instructions at the bottom of the crontab window showing you how to save this.
+    ^ in Linux means the Ctrl button so ^O means hold down the Ctrl button and press O.
+</p>
 
 <h2>Testing Outside:</h2>
-<p>Once you have finished debugging your code, and updated the crontab then we can 
-take our hardware outside.
-<ul>
-<li>Close all windows and logout of the RPi</li>
-<li>Ask for help with unplugging the circuit board, and correctly configuring the 
-battery.</li>
-</ul>
+<p>
+    Once you have finished debugging your code, and updated the crontab then we can take our hardware outside.
 </p>
+<ul>
+    <li>Close all windows and logout of the RPi</li>
+    <li>Ask for help with unplugging the circuit board, and correctly configuring the battery.</li>
+</ul>
+
 <p>What will you measure?</p>
-<div id=header>
 <P CLASS="pagebreak"></p>
-<h1>Appendix 1: Additional Challenges</h1>
-</div>
-<p>If you finish building the tape measure maybe you want to create some new code to 
-display other properties of the GPS module.</p>
+
+<h1 class="header">Appendix 1: Additional Challenges</h1>
+
+<p>
+    If you finish building the tape measure maybe you want to create some new code to display other properties of
+    the GPS module.
+</p>
 
 <h2>Displaying the time from the GPS module:</h2>
-<p>There is a method in the GPS class to get the time with a local time offset. This 
-method is called get_local_clock().
-Here is an example of how this function might be used:<br>
-<pre>
-gps_time = GPS1.get_local_clock()
-print 'Show time: {0}'.format(gps_time)
-DISP.show_clock(gps_time)
-</pre>
+<p>
+    There is a method in the GPS class to get the time with a local time offset.
+    This method is called get_local_clock().
+    Here is an example of how this function might be used:
 </p>
-<p>To show the time on the display we recommend using show_clock() rather than 
-show_msg() as this will give you a colon ":" between the hours and minutes.
-The time by default will be GMT so if we were on BST you would need to change the 
-time zone with the set_time_zone_offset method. An example of this is:<br>
-<pre>GPS1.set_time_zone_offset(1)</pre></p>
+<pre>
+    gps_time = GPS1.get_local_clock()
+    print 'Show time: {0}'.format(gps_time)
+    DISP.show_clock(gps_time)
+</pre>
+
+<p>
+    To show the time on the display we recommend using show_clock() rather than show_msg() as this will give you a
+    colon ":" between the hours and minutes. The time by default will be GMT so if we were on BST you would need to
+    change the time zone with the set_time_zone_offset method. An example of this is:
+</p>
+<pre>
+    GPS1.set_time_zone_offset(1)
+</pre>
 
 <h2>Number of Satellites Visible</h2>
-<p>The GPS module stores how many GPS and GLONASS satellites are in view (siv) in 
-the variables gps_siv and glo_siv respectively. 
-You may want to show this information on your display. An example of getting and 
-displaying these variables is:<br>
-<pre>print 'Show satellite count {0:02}:{1:02}'.format(GPS1.gps_siv, GPS1.glo_siv)
-DISP.show_clock('{0:02}{1:02}'.format(GPS1.gps_siv, GPS1.glo_siv))
-</pre></p>
-In this example we have used the show_clock method so that we get the colon 
-between the two numbers. You can also use the show_msg command.
+<p>
+    The GPS module stores how many GPS and GLONASS satellites are in view (siv) in the variables gps_siv and glo_siv
+    respectively. You may want to show this information on your display. An example of getting and displaying these
+    variables is:
+</p>
+<pre>
+    print 'Show satellite count {0:02}:{1:02}'.format(GPS1.gps_siv, GPS1.glo_siv)
+    DISP.show_clock('{0:02}{1:02}'.format(GPS1.gps_siv, GPS1.glo_siv))
+</pre>
+<p>
+    In this example we have used the show_clock method so that we get the colon between the two numbers.
+    You can also use the show_msg command.
+</p>
 
 <h2>Show Coarse Over Ground</h2>
-<p>The GPS module stores the direction it calculates we are travelling with respect to 
-true north in a variable called cog. This is an integer in degrees clockwise from true 
-north.
-An example of how to retrieve and display this is:<br>
+<p>
+    The GPS module stores the direction it calculates we are travelling with respect to true north in a variable
+    called cog. This is an integer in degrees clockwise from true north.
+    An example of how to retrieve and display this is:
+</p>
 <pre>
-print 'Show Course over Ground: {0}'.format(GPS1.cog)
-DISP.show_msg('{0}'.format(GPS1.cog))
+    print 'Show Course over Ground: {0}'.format(GPS1.cog)
+    DISP.show_msg('{0}'.format(GPS1.cog))
 </pre>
-</p>
+
 <h2>Show Altitude</h2>
-<p>The GPS module stores the altitude in a variable called alt_msl. MSL stands for Mean 
-Sea Level. MSL is defined as the zero elevation for a local area. Unfortunately for 
-mapmakers, sea level is not a simple surface as the sea surface conforms to the earth's 
-gravitational field so there is a lively debate about what should be the zero elevation. 
-We shall ignore this for now and look to see what the reading is for where we are.
-An example of how to retrieve and display this is:<br>
-<pre>print 'Show Altitude {0}'.format(GPS1.alt_msl)
-DISP.show_msg('{0}'.format(GPS1.alt_msl))
-</pre>
+<p>
+    The GPS module stores the altitude in a variable called alt_msl. MSL stands for Mean Sea Level.
+    MSL is defined as the zero elevation for a local area. Unfortunately for mapmakers, sea level is not a simple
+    surface as the sea surface conforms to the earth's gravitational field so there is a lively debate about what
+    should be the zero elevation.
+    We shall ignore this for now and look to see what the reading is for where we are.
+    An example of how to retrieve and display this is:
 </p>
-<div id=header>
+
+<pre>
+    print 'Show Altitude {0}'.format(GPS1.alt_msl)
+    DISP.show_msg('{0}'.format(GPS1.alt_msl))
+</pre>
 <P CLASS="pagebreak"></p>
-<h1>Appendix 2: How the Hardware is connected</h1>
-</div>
-<p>For your reference the connections between the Raspberry Pi and the H13467 GNSS 
-board are detailed below. 
-The colour the cables are not important but which pins they go to are.
-The power supply (3V3) should be connected up last.</p>
+
+<h1 class="header">Appendix 2: How the Hardware is connected</h1>
+
+<p>
+    For your reference the connections between the Raspberry Pi and the H13467 GNSS board are detailed below.
+    The colour the cables are not important but which pins they go to are.
+    The power supply (3V3) should be connected up last.
+</p>
 
 <h2>Connect the H13467 board to the RPi as described:</h2>
-<p><table>
-<tr><th>GPS Board Pin Name</th><th>Raspberry Pi Pin Name</th></tr>
-<tr><td>RX1</td><td>TXD</td></tr>
-<tr><td>TX1</td><td>RXD</td></tr>
-<tr><td>ON</td><td>22</td></tr>
-<tr><td>LD1</td><td>25</td></tr>
-<tr><td>LD2</td><td>24</td></tr>
-<tr><td>BTN</td><td>23</td></tr>
-<tr><td>WAK</td><td>18</td></tr>
-<tr><td>GND</td><td>GND</td></tr>
-<tr><td>3V3</td><td>3V3</td></tr>
 <table>
+    <tr><th>GPS Board Pin Name</th><th>Raspberry Pi Pin Name</th></tr>
+    <tr><td>RX1</td><td>TXD</td></tr>
+    <tr><td>TX1</td><td>RXD</td></tr>
+    <tr><td>ON</td><td>22</td></tr>
+    <tr><td>LD1</td><td>25</td></tr>
+    <tr><td>LD2</td><td>24</td></tr>
+    <tr><td>BTN</td><td>23</td></tr>
+    <tr><td>WAK</td><td>18</td></tr>
+    <tr><td>GND</td><td>GND</td></tr>
+    <tr><td>3V3</td><td>3V3</td></tr>
+</table>
 
-</p>
 <h2>Schematic on Connections Between GPS and RPi:</h2>
 <p align=center>
-  <img src="images/gps_connect.jpg"alt="Raspberry Pi connections to H13467 board" width=70%>
+    <img src="images/gps_connect.jpg" alt="Raspberry Pi connections to H13467 board" width=70%>
 </p>
  
 <h2>Definition of the GPIO pins on the Raspberry Pi:</h2>
 <p align=center>
-  <img src="images/rpi_pinout.jpg"alt="Raspberry Pi Pinout" width=70%>
+    <img src="images/rpi_pinout.jpg" alt="Raspberry Pi Pinout" width=70%>
 </p>
 
   
 <h2>Connect the Display board to the RPi as described:</h2>
-<p><table>
-<tr><th>Display Pin Name</th><th>Raspberry Pi Pin Name</th></tr>
-<tr><td>GND</td><td>GND</td></tr>
-<tr><td>SCL</td><td>3</td></tr>
-<tr><td>SDA</td><td>2</td></tr>
-<tr><td>5V</td><td>5V</td></tr>
+<table>
+    <tr><th>Display Pin Name</th><th>Raspberry Pi Pin Name</th></tr>
+    <tr><td>GND</td><td>GND</td></tr>
+    <tr><td>SCL</td><td>3</td></tr>
+    <tr><td>SDA</td><td>2</td></tr>
+    <tr><td>5V</td><td>5V</td></tr>
 </table>
-</p>
+
 <p align=center>
-  <img src="images/ipd_connections.jpg"alt="Raspberry Pi connections to LED display" width=40%>
+    <img src="images/ipd_connections.jpg" alt="Raspberry Pi connections to LED display" width=40%>
 </p>
 <h2>license</h2>
 <div id=footer>
-<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
-<img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" />
-</a><br />
-<span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Text" property="dct:title" rel="dct:type">GPS tape measure workshop</span>
- by <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">Barry Byford</span> is licensed under a 
- <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
- Creative Commons Attribution-ShareAlike 4.0 International License</a>.
- <br />Based on a work at <a xmlns:dct="http://purl.org/dc/terms/" href="https://github.com/ukBaz/GPSworkshop" rel="dct:source">
- https://github.com/ukBaz/GPSworkshop</a>.
+    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+        <img alt="Creative Commons License" style="border-width:0"
+             src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" />
+    </a><br />
+    <span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Text"
+          property="dct:title" rel="dct:type">GPS tape measure workshop
+    </span>
+    by
+    <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">Barry Byford</span>
+    is licensed under a
+    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+        Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+    <br />Based on a work at <a xmlns:dct="http://purl.org/dc/terms/"
+                                href="https://github.com/ukBaz/GPSworkshop" rel="dct:source">
+    https://github.com/ukBaz/GPSworkshop</a>.
 </div>
-  </body>
+</body>
 </html>

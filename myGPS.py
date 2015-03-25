@@ -33,9 +33,9 @@ if __name__ == '__main__':
     try:
         while 1:
             # Test for button press
-            if BTN.is_odd():
+            if BTN.get_count() == 0:
                 # Use LEDs to show change
-                LD1.on()
+                LD1.off()
                 LD2.off()
                 if needRef:
                     # Get reference coordinates
@@ -51,10 +51,10 @@ if __name__ == '__main__':
                 DISP.show_msg('{0}'.format(int(dist)))
                 # Print debug statements
                 print '{0}'.format(int(dist))
-            else:
+            if BTN.get_count() == 1:
                 # Use LEDs to show change
-                LD1.off()
-                LD2.on()
+                LD1.on()
+                LD2.off()
                 # Show last distance calculation and precision of GPS
                 DISP.show_msg('{0}P{1}'.format(int(dist), int(GPS1.precision)))
                 # print debug statements
@@ -66,6 +66,11 @@ if __name__ == '__main__':
                 # Tell code it will need a new reference point
                 # on next button press
                 needRef = True
+
+            if BTN.get_count() > 1:
+                print 'Reset button count'
+                needRef = True
+                BTN.count = 0
             # Wait 1.5 seconds before updating
             sleep(1.5)
 
@@ -74,7 +79,7 @@ if __name__ == '__main__':
 
     finally:
         print 'Tidy up before exit'
-        DISP._clear_display()
+        DISP.clear_display()
         GPS1.data_stop()
         GPS1.pulse_on_off()
         GPIO.cleanup()

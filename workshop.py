@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
     finally:
         print 'Tidy up before exit'
-        DISP._clear_display()
+        DISP.clear_display()
         GPS1.data_stop()
         GPS1.pulse_on_off()
         GPIO.cleanup()
