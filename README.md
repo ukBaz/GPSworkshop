@@ -37,7 +37,15 @@ install i2c-tools
   sudo apt-get install i2c-tools
   sudo apt-get install python-smbus
 ```
-Install the utm module for python
+To enable Pi 2 support new kernels (3.18+) include a configuration change to enable Device Tree support by default. This means the above set-up is no longer true.
+
+To enable i2c is now done using 
+```
+sudo raspi-config
+```
+Select "Advanced Options" from the menu, then "I2C", and enable the interface there. You will want the driver module to load automatically so then answer "Yes" to the followup question. raspi-config can also be used to disable and re-enable DT.
+
+###Install the utm module for python
 ```
   download from pypi
   tar -zxvf utm-0.3.1.tar.gz
