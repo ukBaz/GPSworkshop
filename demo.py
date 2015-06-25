@@ -32,7 +32,7 @@ if __name__ == '__main__':
     # GPS1.echo_gps = True
     BTN = H13467.BUT(23)
     LD2 = H13467.LED(24)
-    LD1 = H13467.LED(25)
+    LD1 = H13467.LED(9)
     DISP = IPD.IPD()
 
     N1 = 0

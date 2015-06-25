@@ -18,7 +18,7 @@ if __name__ == '__main__':
     GPS1 = H13467.GPS(18, 22)  # Create GPS object
     BTN = H13467.BUT(23)  # Button Object
     LD2 = H13467.LED(24)  # LED 2 Object
-    LD1 = H13467.LED(25)  # Create Object for LED 1
+    LD1 = H13467.LED(9)  # Create Object for LED 1
     DISP = IPD.IPD()  # 4-digit 7-Segment display opbject
     # Create variables for storing coordinates and distance
     N1 = 0

@@ -21,7 +21,7 @@ import IPD
 
 if __name__ == '__main__':
     GPIO.setmode(GPIO.BCM)
-    LD1 = H13467.LED(25)
+    LD1 = H13467.LED(9)
     BTN = H13467.BUT(23)
     LD2 = H13467.LED(24)
     GPS1 = H13467.GPS(18, 22)
